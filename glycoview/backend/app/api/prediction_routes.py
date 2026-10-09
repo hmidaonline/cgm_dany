@@ -250,3 +250,47 @@ def get_evaluation():
     eval_report = evaluate_all_models(df_raw)
     EVAL_CACHE.update(eval_report)
     return eval_report
+
+from pydantic import BaseModel
+from app.ml.simulation import simulate_what_if_scenario
+
+class SimulationRequest(BaseModel):
+    bolus_u: float = 0.0
+    carbs_g: float = 0.0
+    sensitivity_factor: float = 1.0  # 0.7 = stress/illness, 1.4 = physical exercise
+    model_type: str = "lightgbm"
+
+@router.post("/simulate")
+def run_simulation(req: SimulationRequest):
+    """
+    Simulates a 'What-If' clinical scenario (bolus injection, carb intake, stress/exercise factor).
+    Returns predicted trajectory comparing baseline vs. simulated intervention.
+    """
+    try:
+        df_raw = get_processed_dataframe(days=7)
+    except Exception:
+        df_raw = pd.DataFrame()
+
+    if df_raw.empty:
+        now = pd.Timestamp.now()
+        times = [now - pd.Timedelta(minutes=5 * i) for i in range(288)][::-1]
+        base_sgv = 120 + 25 * np.sin(np.linspace(0, 4*np.pi, 288)) + np.random.normal(0, 3, 288)
+        df_raw = pd.DataFrame({
+            'datetime': times,
+            'sgv': np.clip(base_sgv, 50, 320),
+            'iob': np.clip(1.5 + np.cos(np.linspace(0, 2*np.pi, 288)), 0, 5),
+            'cob': np.clip(15 + 10 * np.sin(np.linspace(0, 2*np.pi, 288)), 0, 60),
+            'bolus': 0.0,
+            'carbs': 0.0
+        })
+
+    return simulate_what_if_scenario(
+        df_raw=df_raw,
+        lgb_model=LGB_MODEL,
+        deep_model=DEEP_MODEL,
+        bolus_u=req.bolus_u,
+        carbs_g=req.carbs_g,
+        sensitivity_factor=req.sensitivity_factor,
+        model_type=req.model_type
+    )
+

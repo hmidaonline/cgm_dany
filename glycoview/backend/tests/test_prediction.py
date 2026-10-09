@@ -41,3 +41,19 @@ def test_prediction_evaluate():
     assert "lightgbm" in data["models"]
     assert "deep" in data["models"]
     assert "persistence" in data["models"]
+
+def test_prediction_simulate():
+    response = client.post("/api/v1/prediction/simulate", json={
+        "bolus_u": 2.0,
+        "carbs_g": 30.0,
+        "sensitivity_factor": 0.8,
+        "model_type": "lightgbm"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert "baseline_trajectory" in data
+    assert "simulated_trajectory" in data
+    assert "impact_summary" in data
+    assert "min_projected_sgv" in data["impact_summary"]
+
