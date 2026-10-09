@@ -106,10 +106,36 @@ def _extract_devicestatus(s: dict) -> dict:
     if basal is None and isinstance(pump, dict):
         basal = pump.get("basal", {}).get("rate")
 
+    # 4. Dynamic ISF / Sensibilité Dynamique
+    sens = None
+    sens_ratio = None
+    if isinstance(openaps, dict):
+        enacted = openaps.get("enacted")
+        suggested = openaps.get("suggested")
+        autosens = openaps.get("autosens")
+
+        if isinstance(enacted, dict):
+            sens = enacted.get("isf", enacted.get("ISF", enacted.get("sens")))
+            sens_ratio = enacted.get("ratio", enacted.get("sensitivityRatio"))
+        if sens is None and isinstance(suggested, dict):
+            sens = suggested.get("isf", suggested.get("ISF", suggested.get("sens")))
+            if sens_ratio is None:
+                sens_ratio = suggested.get("ratio", suggested.get("sensitivityRatio"))
+        if sens_ratio is None and isinstance(autosens, dict):
+            sens_ratio = autosens.get("ratio")
+
+    # If sens ratio exists (e.g., 1.05), format ratio percentage
+    if sens_ratio is not None and sens_ratio > 0:
+        ratio_pct = round(float(sens_ratio) * 100.0) if sens_ratio <= 5.0 else round(float(sens_ratio))
+    else:
+        ratio_pct = 100
+
     return {
         "iob": round(float(iob), 2) if iob is not None else 0.0,
         "cob": round(float(cob), 1) if cob is not None else 0.0,
         "basal": round(float(basal), 2) if basal is not None else 0.0,
+        "sensitivity": round(float(sens), 1) if sens is not None else (40.0 * (ratio_pct / 100.0)),
+        "sensitivity_ratio": ratio_pct,
         "created_at": s.get("created_at")
     }
 

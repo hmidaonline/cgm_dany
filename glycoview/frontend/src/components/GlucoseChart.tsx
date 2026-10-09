@@ -24,6 +24,8 @@ interface DeviceStatus {
   iob: number;
   cob: number;
   basal: number;
+  sensitivity?: number;
+  sensitivity_ratio?: number;
   created_at?: string;
 }
 
@@ -76,6 +78,8 @@ export default function GlucoseChart({ selectedDate, onSelectDate, availableDays
           iob: statusData.iob ?? 0,
           cob: statusData.cob ?? 0,
           basal: statusData.basal ?? 0,
+          sensitivity: statusData.sensitivity ?? 40.0,
+          sensitivity_ratio: statusData.sensitivity_ratio ?? 100,
           created_at: statusData.created_at,
         });
       })
@@ -603,8 +607,8 @@ export default function GlucoseChart({ selectedDate, onSelectDate, availableDays
           )}
         </div>
 
-        {/* Section Métriques AAPS : IOB, COB, Basal */}
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        {/* Section Métriques AAPS : IOB, COB, ISF Dyn. et Basal */}
+        <div style={{ display: 'flex', gap: '1.75rem', alignItems: 'center' }}>
           {/* IOB */}
           <div style={{ textAlign: 'center' }} title="Insulin On Board (Insuline Active)">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', color: '#38bdf8' }}>
@@ -624,6 +628,17 @@ export default function GlucoseChart({ selectedDate, onSelectDate, availableDays
             </div>
             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#f8fafc', marginTop: '0.1rem' }}>
               {deviceStatus.cob.toFixed(1)} g
+            </div>
+          </div>
+
+          {/* Sensibilité Dynamique (ISF) */}
+          <div style={{ textAlign: 'center' }} title="Sensibilité Dynamique à l'Insuline (ISF / Ratio Autosens)">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', color: '#10b981' }}>
+              <Zap size={15} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>ISF DYN.</span>
+            </div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10b981', marginTop: '0.1rem' }}>
+              {deviceStatus.sensitivity ? deviceStatus.sensitivity.toFixed(0) : 40} <small style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'normal' }}>mg/dL/U</small>
             </div>
           </div>
           
