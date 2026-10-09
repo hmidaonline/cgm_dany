@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, LineChart, BrainCircuit, Activity, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, LineChart, BrainCircuit, Activity, Settings as SettingsIcon, Cpu } from 'lucide-react';
 import GlucoseChart from './components/GlucoseChart';
 import PredictionView from './components/PredictionView';
+import DigitalTwinView from './components/DigitalTwinView';
 import { API_BASE_URL } from './config';
 
 interface Metrics {
@@ -74,6 +75,9 @@ function App() {
           <div className={`nav-item ${activeMenu === 'prediction' ? 'active' : ''}`} onClick={() => setActiveMenu('prediction')}>
             <BrainCircuit className="w-5 h-5" /> Prédictions (J4)
           </div>
+          <div className={`nav-item ${activeMenu === 'digital_twin' ? 'active' : ''}`} onClick={() => setActiveMenu('digital_twin')}>
+            <Cpu className="w-5 h-5" /> Jumeau Numérique (J6)
+          </div>
           <div style={{ flex: 1 }}></div>
           <div className="nav-item">
             <SettingsIcon className="w-5 h-5" /> Paramètres
@@ -93,6 +97,7 @@ function App() {
             )}
             {activeMenu === 'analysis' && 'Analyses Statistiques'}
             {activeMenu === 'prediction' && 'Modèles de Prédiction'}
+            {activeMenu === 'digital_twin' && 'Jumeau Numérique Physiologique (J6)'}
           </div>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
             {metrics.mean !== undefined ? `Moyenne : ${metrics.mean} mg/dL` : 'Chargement...'}
@@ -237,6 +242,10 @@ function App() {
 
           {activeMenu === 'prediction' && (
             <PredictionView />
+          )}
+
+          {activeMenu === 'digital_twin' && (
+            <DigitalTwinView />
           )}
         </main>
       </div>
