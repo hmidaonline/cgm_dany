@@ -638,7 +638,7 @@ export default function GlucoseChart({ selectedDate, onSelectDate, availableDays
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>ISF DYN.</span>
             </div>
             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10b981', marginTop: '0.1rem' }}>
-              {deviceStatus.sensitivity ? deviceStatus.sensitivity.toFixed(0) : 40} <small style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'normal' }}>mg/dL/U</small>
+              {deviceStatus.sensitivity !== undefined ? deviceStatus.sensitivity.toFixed(1) : '--'} <small style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'normal' }}>mg/dL/U</small>
             </div>
           </div>
           

@@ -110,17 +110,25 @@ def _extract_devicestatus(s: dict) -> dict:
     sens = None
     sens_ratio = None
     if isinstance(openaps, dict):
-        enacted = openaps.get("enacted")
-        suggested = openaps.get("suggested")
+        enacted = openaps.get("enacted") if isinstance(openaps.get("enacted"), dict) and len(openaps.get("enacted")) > 0 else None
+        suggested = openaps.get("suggested") if isinstance(openaps.get("suggested"), dict) else None
         autosens = openaps.get("autosens")
+        
+        target_obj = enacted or suggested or {}
+        if isinstance(target_obj, dict):
+            reason = str(target_obj.get("reason", ""))
+            logs = ' '.join(target_obj.get("consoleError", [])) + ' ' + ' '.join(target_obj.get("consoleLog", []))
+            
+            # Match "Dosing sensitivity: 23.8", "profile.sens: 23.8", or "ISF: 23.8"
+            import re
+            m = re.search(r'Dosing sensitivity:\s*([\d\.]+)', reason) or re.search(r'profile\.sens:\s*([\d\.]+)', logs) or re.search(r'ISF:\s*([\d\.]+)', reason)
+            if m:
+                sens = float(m.group(1))
+            else:
+                sens = target_obj.get("variable_sens", target_obj.get("isf", target_obj.get("ISF", target_obj.get("sens"))))
+            
+            sens_ratio = target_obj.get("ratio", target_obj.get("sensitivityRatio"))
 
-        if isinstance(enacted, dict):
-            sens = enacted.get("isf", enacted.get("ISF", enacted.get("sens")))
-            sens_ratio = enacted.get("ratio", enacted.get("sensitivityRatio"))
-        if sens is None and isinstance(suggested, dict):
-            sens = suggested.get("isf", suggested.get("ISF", suggested.get("sens")))
-            if sens_ratio is None:
-                sens_ratio = suggested.get("ratio", suggested.get("sensitivityRatio"))
         if sens_ratio is None and isinstance(autosens, dict):
             sens_ratio = autosens.get("ratio")
 
@@ -134,7 +142,7 @@ def _extract_devicestatus(s: dict) -> dict:
         "iob": round(float(iob), 2) if iob is not None else 0.0,
         "cob": round(float(cob), 1) if cob is not None else 0.0,
         "basal": round(float(basal), 2) if basal is not None else 0.0,
-        "sensitivity": round(float(sens), 1) if sens is not None else (40.0 * (ratio_pct / 100.0)),
+        "sensitivity": round(float(sens), 1) if sens is not None else 40.0,
         "sensitivity_ratio": ratio_pct,
         "created_at": s.get("created_at")
     }
