@@ -74,9 +74,13 @@ export default function DigitalTwinView() {
   const [loadingReplay, setLoadingReplay] = useState<boolean>(true);
 
   // What-If Scenario State
+  const [eventTimeStr, setEventTimeStr] = useState<string>('12:00');
   const [bolusDelta, setBolusDelta] = useState<number>(0.0);
   const [carbsDelta, setCarbsDelta] = useState<number>(0.0);
+  const [carbSpeed, setCarbSpeed] = useState<string>('normal');
   const [basalMult, setBasalMult] = useState<number>(1.0);
+  const [isfOverride, setIsfOverride] = useState<string>('');
+  const [stressFactor, setStressFactor] = useState<number>(1.0);
   const [scenarioResult, setScenarioResult] = useState<any>(null);
   const [loadingScenario, setLoadingScenario] = useState<boolean>(false);
 
@@ -154,9 +158,13 @@ export default function DigitalTwinView() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         target_date: selectedDate,
+        event_time_str: eventTimeStr,
         bolus_delta_u: bolusDelta,
         carbs_delta_g: carbsDelta,
-        basal_multiplier: basalMult
+        carb_speed: carbSpeed,
+        isf_override: isfOverride ? parseFloat(isfOverride) : null,
+        basal_multiplier: basalMult,
+        stress_activity_factor: stressFactor
       })
     })
       .then(res => res.json())
@@ -472,10 +480,20 @@ export default function DigitalTwinView() {
             <Sliders /> Simulateur de Scénarios « Et Si » sur Journée Réelle
           </div>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-            Modifiez un bolus, un repas ou une basale sur la journée du <strong>{selectedDate}</strong> et visualisez l'impact simulé par le jumeau numérique.
+            Personnalisez un événement (heure, glucides, vitesse de digestion, bolus, basale, ISF ou état de stress) sur la journée du <strong>{selectedDate}</strong> et observez la trajectoire dynamique simulée.
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', background: 'var(--surface-hover)', padding: '1.25rem', borderRadius: '8px', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', background: 'var(--surface-hover)', padding: '1.25rem', borderRadius: '8px', marginBottom: '1.25rem' }}>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Heure de l'Événement :</label>
+              <input
+                type="time"
+                value={eventTimeStr}
+                onChange={e => setEventTimeStr(e.target.value)}
+                style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
+              />
+            </div>
+
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ajustement Bolus (U) :</label>
               <input
@@ -486,6 +504,7 @@ export default function DigitalTwinView() {
                 style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
               />
             </div>
+
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ajustement Glucides (g) :</label>
               <input
@@ -496,6 +515,20 @@ export default function DigitalTwinView() {
                 style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
               />
             </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Vitesse de Digestion :</label>
+              <select
+                value={carbSpeed}
+                onChange={e => setCarbSpeed(e.target.value)}
+                style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
+              >
+                <option value="fast">Rapide (Jus / Sucres / Bonbons)</option>
+                <option value="normal">Normale (Repas Équilibré)</option>
+                <option value="slow">Lente (Pizza / Pâtes / Gras)</option>
+              </select>
+            </div>
+
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Multiplicateur Basal :</label>
               <select
@@ -503,12 +536,41 @@ export default function DigitalTwinView() {
                 onChange={e => setBasalMult(parseFloat(e.target.value))}
                 style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
               >
+                <option value={0.5}>0.5x (-50% Basale Temp)</option>
                 <option value={0.8}>0.8x (-20% Basale Temp)</option>
-                <option value={1.0}>1.0x (Basale Normale)</option>
+                <option value={1.0}>1.0x (Basale Programmée)</option>
                 <option value={1.2}>1.2x (+20% Basale Temp)</option>
-                <option value={1.5}>1.5x (+50% Cible Temp)</option>
+                <option value={1.5}>1.5x (+50% Basale Temp)</option>
+                <option value={2.0}>2.0x (+100% Basale Temp)</option>
               </select>
             </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Surcharge ISF (mg/dL par U) :</label>
+              <input
+                type="number"
+                placeholder="Par défaut (Auto)"
+                value={isfOverride}
+                onChange={e => setIsfOverride(e.target.value)}
+                style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>État Physique / Stress :</label>
+              <select
+                value={stressFactor}
+                onChange={e => setStressFactor(parseFloat(e.target.value))}
+                style={{ width: '100%', background: 'var(--surface)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.3rem' }}
+              >
+                <option value={0.7}>Stress / Maladie (-30% ISF + Pic hépatique)</option>
+                <option value={0.85}>Stress Légère (-15% ISF)</option>
+                <option value={1.0}>Normal / Repos (1.0x)</option>
+                <option value={1.25}>Marche / Activité Modérée (+25% ISF)</option>
+                <option value={1.5}>Sport / Exercice Intense (+50% ISF)</option>
+              </select>
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
               <button
                 onClick={handleRunScenario}
@@ -519,12 +581,48 @@ export default function DigitalTwinView() {
             </div>
           </div>
 
+          {/* Scenario Summary Card Bar */}
+          {scenarioResult?.summary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ background: 'var(--surface-hover)', padding: '0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Impact Max du Scénario</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: scenarioResult.summary.max_impact_delta > 0 ? '#fbbf24' : '#60a5fa' }}>
+                  {scenarioResult.summary.max_impact_delta > 0 ? `+${scenarioResult.summary.max_impact_delta}` : scenarioResult.summary.max_impact_delta} <small style={{ fontSize: '0.75rem' }}>mg/dL</small>
+                </div>
+              </div>
+              <div style={{ background: 'var(--surface-hover)', padding: '0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Glycémie Min Projected</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: scenarioResult.summary.risk_hypo ? '#ef4444' : '#10b981' }}>
+                  {scenarioResult.summary.min_projected_sgv} <small style={{ fontSize: '0.75rem' }}>mg/dL</small>
+                </div>
+              </div>
+              <div style={{ background: 'var(--surface-hover)', padding: '0.85rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Glycémie Max Projected</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: scenarioResult.summary.risk_hyper ? '#ef4444' : '#10b981' }}>
+                  {scenarioResult.summary.max_projected_sgv} <small style={{ fontSize: '0.75rem' }}>mg/dL</small>
+                </div>
+              </div>
+              <div style={{ background: 'var(--surface-hover)', padding: '0.85rem', borderRadius: '8px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Alerte de Risque</div>
+                <div>
+                  {scenarioResult.summary.risk_hypo ? (
+                    <span style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ Risque d'Hypoglycémie</span>
+                  ) : scenarioResult.summary.risk_hyper ? (
+                    <span style={{ background: 'rgba(245,158,11,0.2)', color: '#fbbf24', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ Risque d'Hyperglycémie</span>
+                  ) : (
+                    <span style={{ background: 'rgba(16,185,129,0.2)', color: '#34d399', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>✅ Dans la Cible</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {loadingScenario ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Calcul du scénario...</div>
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Calcul du scénario en cours...</div>
           ) : scenarioResult?.timeline ? (
             <ReactECharts option={scenarioChartOption} style={{ height: '380px', width: '100%' }} />
           ) : (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Cliquez sur "Simuler le Scénario" pour lancer le calcul.</div>
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Configurez vos paramètres ci-dessus puis cliquez sur "Simuler le Scénario".</div>
           )}
         </div>
       )}

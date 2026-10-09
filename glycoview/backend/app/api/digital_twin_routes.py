@@ -43,8 +43,11 @@ def _get_raw_data() -> pd.DataFrame:
 
 class TwinScenarioRequest(BaseModel):
     target_date: Optional[str] = None
+    event_time_str: Optional[str] = "12:00"
     bolus_delta_u: float = 0.0
     carbs_delta_g: float = 0.0
+    carb_speed: str = "normal"  # "fast", "normal", "slow"
+    isf_override: Optional[float] = None
     basal_multiplier: float = 1.0
     stress_activity_factor: float = 1.0  # 0.7 = Stress, 1.0 = Normal, 1.4 = Exercice
 
@@ -69,7 +72,7 @@ def get_day_replay(date: Optional[str] = Query(None, description="YYYY-MM-DD dat
 def run_twin_scenario(req: TwinScenarioRequest):
     """
     Interactive 'What-If' scenario simulation on the Digital Twin.
-    Allows adjusting bolus, carbs, basal, and stress/exercise factor.
+    Allows adjusting bolus, carbs, absorption speed, event time, ISF override, basal, and stress/exercise factor.
     """
     df_raw = _get_raw_data()
     
@@ -79,56 +82,49 @@ def run_twin_scenario(req: TwinScenarioRequest):
     else:
         date = pd.Timestamp.now().strftime('%Y-%m-%d')
 
-    # Run baseline replay
-    baseline = replay_past_day(df_raw, TWIN_MODEL, date)
-    if baseline.get("status") == "error":
-        return baseline
+    data = df_raw.copy()
+    data['date_str'] = pd.to_datetime(data['datetime']).dt.strftime('%Y-%m-%d')
+    day_df = data[data['date_str'] == date].sort_values('datetime').reset_index(drop=True)
 
-    timeline = baseline.get("timeline", [])
-    if not timeline:
-        raise HTTPException(status_code=400, detail="Timeline simulation failed")
+    if day_df.empty or len(day_df) < 12:
+        # Fallback to the latest available day date in dataset
+        if not df_raw.empty and 'datetime' in df_raw.columns:
+            date = pd.to_datetime(df_raw['datetime'].iloc[-1]).strftime('%Y-%m-%d')
+            day_df = data[data['date_str'] == date].sort_values('datetime').reset_index(drop=True)
 
-    start_dt = pd.to_datetime(timeline[0]["datetime"])
-    start_sgv = timeline[0]["real_sgv"] or 110.0
+    if day_df.empty or len(day_df) < 12:
+        raise HTTPException(status_code=400, detail="Pas assez de données pour simuler la journée sélectionnée.")
 
-    # Build modified inputs for scenario
-    num_steps = len(timeline)
-    bolus_series = [t.get("bolus", 0.0) + (req.bolus_delta_u if i == 12 else 0.0) for i, t in enumerate(timeline)]
-    carbs_series = [t.get("carbs", 0.0) + (req.carbs_delta_g if i == 12 else 0.0) for i, t in enumerate(timeline)]
-    basal_series = [0.8 * req.basal_multiplier for _ in range(num_steps)]
-
-    # Run simulated trajectory
-    sim_points = TWIN_MODEL.simulate_trajectory(
-        start_sgv=start_sgv,
-        start_iob=0.0,
-        start_cob=0.0,
-        bolus_series=bolus_series,
-        carbs_series=carbs_series,
-        basal_series=basal_series,
-        start_datetime=start_dt,
-        num_steps=num_steps
+    # Run dynamic trajectory simulation using full custom parameters
+    scenario_timeline = TWIN_MODEL.simulate_day_trajectory(
+        df_day=day_df,
+        custom_bolus=req.bolus_delta_u,
+        custom_carbs=req.carbs_delta_g,
+        carb_speed=req.carb_speed,
+        event_time_str=req.event_time_str,
+        isf_override=req.isf_override,
+        basal_mult=req.basal_multiplier,
+        stress_factor=req.stress_activity_factor
     )
 
-    scenario_timeline = []
-    for i in range(num_steps):
-        b_item = timeline[i]
-        s_item = sim_points[i]
-
-        scenario_timeline.append({
-            "datetime": b_item["datetime"],
-            "real_sgv": b_item["real_sgv"],
-            "baseline_sim_sgv": b_item["simulated_sgv"],
-            "scenario_sim_sgv": s_item["simulated_sgv"],
-            "p10": s_item["p10"],
-            "p90": s_item["p90"],
-            "delta_from_baseline": round(s_item["simulated_sgv"] - b_item["simulated_sgv"], 1)
-        })
+    # Compute scenario metrics summary
+    deltas = [pt["delta_from_baseline"] for pt in scenario_timeline]
+    max_delta = max(deltas, key=abs) if deltas else 0.0
+    min_sgv = min([pt["scenario_sim_sgv"] for pt in scenario_timeline]) if scenario_timeline else 100.0
+    max_sgv = max([pt["scenario_sim_sgv"] for pt in scenario_timeline]) if scenario_timeline else 100.0
 
     return {
         "status": "success",
         "date": date,
         "inputs": req.model_dump() if hasattr(req, "model_dump") else req.dict(),
         "disclaimer": "Simulation basée sur un modèle avec incertitude. Ne pas utiliser pour décider d'une dose.",
+        "summary": {
+            "max_impact_delta": round(max_delta, 1),
+            "min_projected_sgv": round(min_sgv, 1),
+            "max_projected_sgv": round(max_sgv, 1),
+            "risk_hypo": min_sgv < 70.0,
+            "risk_hyper": max_sgv > 180.0
+        },
         "timeline": scenario_timeline
     }
 
