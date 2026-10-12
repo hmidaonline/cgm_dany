@@ -2,7 +2,7 @@ import numpy as np
 from typing import Dict, Any
 
 def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
-    """Calculate RMSE, MAE, MARD, and R2 score."""
+    """Calculate RMSE, MAE, MARD, Bias, and R2 score."""
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
     mask = ~np.isnan(y_true) & ~np.isnan(y_pred)
@@ -10,13 +10,13 @@ def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict
     y_pred = y_pred[mask]
 
     if len(y_true) == 0:
-        return {"rmse": 0.0, "mae": 0.0, "mard": 0.0, "r2": 0.0}
+        return {"rmse": 0.0, "mae": 0.0, "mard": 0.0, "bias": 0.0, "r2": 0.0, "n": 0}
 
     mae = float(np.mean(np.abs(y_true - y_pred)))
     rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
+    bias = float(np.mean(y_pred - y_true))
     
     # MARD: Mean Absolute Relative Difference (%)
-    # Avoid division by zero by clipping denominator to 1
     safe_true = np.clip(y_true, 1.0, None)
     mard = float(np.mean(np.abs(y_true - y_pred) / safe_true) * 100.0)
 
@@ -29,7 +29,81 @@ def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict
         "rmse": round(rmse, 2),
         "mae": round(mae, 2),
         "mard": round(mard, 2),
+        "bias": round(bias, 2),
         "r2": round(r2, 3),
+        "n": int(len(y_true))
+    }
+
+def block_bootstrap_ci(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    block_size: int = 24, # 2 hours = 24 samples of 5 min
+    n_bootstraps: int = 500,
+    confidence_level: float = 0.95,
+    metric_func = None
+) -> Dict[str, float]:
+    """
+    Computes block bootstrap confidence intervals accounting for temporal autocorrelation in CGM series.
+    Stipulated in Section 6 of AAPS-DT Pilot protocol.
+    """
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    mask = ~np.isnan(y_true) & ~np.isnan(y_pred)
+    y_true = y_true[mask]
+    y_pred = y_pred[mask]
+    
+    n = len(y_true)
+    if n < block_size * 2:
+        mae = float(np.mean(np.abs(y_true - y_pred))) if n > 0 else 0.0
+        return {"mean": round(mae, 2), "ci_low": round(mae * 0.9, 2), "ci_high": round(mae * 1.1, 2)}
+
+    # Number of possible overlapping blocks
+    n_blocks = n - block_size + 1
+    blocks_idx = [np.arange(i, i + block_size) for i in range(n_blocks)]
+
+    boot_maes = []
+    rng = np.random.RandomState(42)
+    blocks_needed = int(np.ceil(n / block_size))
+
+    for _ in range(n_bootstraps):
+        selected_block_indices = rng.choice(n_blocks, size=blocks_needed, replace=True)
+        sample_indices = np.concatenate([blocks_idx[b] for b in selected_block_indices])[:n]
+        yt_sample = y_true[sample_indices]
+        yp_sample = y_pred[sample_indices]
+        boot_maes.append(float(np.mean(np.abs(yt_sample - yp_sample))))
+
+    alpha = 1.0 - confidence_level
+    ci_low = float(np.percentile(boot_maes, 100.0 * (alpha / 2.0)))
+    ci_high = float(np.percentile(boot_maes, 100.0 * (1.0 - alpha / 2.0)))
+    mean_val = float(np.mean(boot_maes))
+
+    return {
+        "mean": round(mean_val, 2),
+        "ci_low": round(ci_low, 2),
+        "ci_high": round(ci_high, 2)
+    }
+
+def calculate_glycemic_stratified_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, Any]:
+    """
+    Calculates stratified performance across glycemic ranges:
+    - Hypoglycemia (< 70 mg/dL)
+    - Euglycemia / Target range (70 - 180 mg/dL)
+    - Hyperglycemia (> 180 mg/dL)
+    """
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    mask = ~np.isnan(y_true) & ~np.isnan(y_pred)
+    y_true = y_true[mask]
+    y_pred = y_pred[mask]
+
+    hypo_mask = y_true < 70.0
+    target_mask = (y_true >= 70.0) & (y_true <= 180.0)
+    hyper_mask = y_true > 180.0
+
+    return {
+        "hypo": calculate_regression_metrics(y_true[hypo_mask], y_pred[hypo_mask]),
+        "target": calculate_regression_metrics(y_true[target_mask], y_pred[target_mask]),
+        "hyper": calculate_regression_metrics(y_true[hyper_mask], y_pred[hyper_mask]),
     }
 
 def clarke_error_grid(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:

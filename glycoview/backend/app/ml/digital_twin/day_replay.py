@@ -41,7 +41,9 @@ def replay_past_day(
     carbs_series = day_df['carbs'].fillna(0.0).values if 'carbs' in day_df.columns else np.zeros(len(day_df))
     basal_series = day_df['basal'].fillna(0.8).values if 'basal' in day_df.columns else np.full(len(day_df), 0.8)
 
-    # Run digital twin simulation
+    real_sgvs = day_df['sgv'].interpolate().bfill().ffill().values if 'sgv' in day_df.columns else np.full(len(day_df), 110.0)
+
+    # Run digital twin simulation with physiological dynamics and innovation filter
     sim_points = twin_model.simulate_trajectory(
         start_sgv=start_sgv,
         start_iob=start_iob,
@@ -50,7 +52,8 @@ def replay_past_day(
         carbs_series=list(carbs_series),
         basal_series=list(basal_series),
         start_datetime=start_dt,
-        num_steps=len(day_df)
+        num_steps=len(day_df),
+        real_sgv_series=list(real_sgvs)
     )
 
     # Combine real and simulated series

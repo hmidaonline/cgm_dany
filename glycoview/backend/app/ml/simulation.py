@@ -6,21 +6,24 @@ from app.ml.features import prepare_ml_dataset, FEATURE_COLUMNS, TARGET_HORIZONS
 from app.ml.lightgbm_model import LightGBMPredictor
 from app.ml.deep_models import DeepPredictor
 
-def insulin_iob_decay(t_minutes: float, dia_hours: float = 5.0, peak_minutes: float = 55.0) -> float:
+from scipy.special import gammainc
+
+def insulin_iob_decay(t_minutes: float, dia_hours: float = 7.0, peak_minutes: float = 55.0) -> float:
     """
-    Standard OpenAPS/Nightscout exponential insulin decay curve.
-    Returns fraction of insulin remaining active at t_minutes.
+    Standard physiological two-compartment subcutaneous insulin absorption and clearance model.
+    Returns fraction of insulin remaining active (unabsorbed/uncleared) at t_minutes, in [0.0, 1.0].
     """
     if t_minutes <= 0:
         return 1.0
-    if t_minutes >= dia_hours * 60.0:
+    dia_minutes = dia_hours * 60.0
+    if t_minutes >= dia_minutes:
         return 0.0
     
-    tau = peak_minutes * (1.0 - peak_minutes / (dia_hours * 60.0)) / (1.0 - 2.0 * peak_minutes / (dia_hours * 60.0))
-    a = 2.0 * tau / (dia_hours * 60.0)
-    S = 1.0 / (1.0 - a + (a - 1.0) * np.exp(-dia_hours * 60.0 / tau))
-    t = t_minutes
-    return float(1.0 - S * (1.0 - a) * (t / (dia_hours * 60.0)) - S * (a - 1.0) * np.exp(-t / tau))
+    # Shape parameter k=2.5, scale theta selected to align mode at peak_minutes
+    k = 2.5
+    theta = peak_minutes / (k - 1.0)
+    absorbed = gammainc(k, t_minutes / theta)
+    return float(np.clip(1.0 - absorbed, 0.0, 1.0))
 
 def carb_cob_decay(t_minutes: float, duration_minutes: float = 180.0, peak_minutes: float = 45.0) -> float:
     """

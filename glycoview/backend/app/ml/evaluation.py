@@ -62,24 +62,39 @@ def evaluate_all_models(df_raw: pd.DataFrame) -> Dict[str, Any]:
     preds_aaps = aaps_model.predict(test_df, TARGET_HORIZONS)
 
     models_eval = {
-        "persistence": {"name": "Persistance (T-0)", "preds": preds_pers},
-        "linear": {"name": "Extrapolation Linéaire", "preds": preds_lin},
-        "lightgbm": {"name": "LightGBM (Gradient Boosting)", "preds": preds_lgb},
-        "deep": {"name": "Deep Learning (GRU / ResNet)", "preds": preds_deep},
-        "aaps": {"name": "AAPS Loop PredBGs", "preds": preds_aaps},
+        "persistence": {"name": "1. Persistance (T-0)", "preds": preds_pers},
+        "linear": {"name": "2. Réf. Temporelle Simple (Linéaire)", "preds": preds_lin},
+        "aaps": {"name": "3. Modèle Physiologique (AAPS/Oref0)", "preds": preds_aaps},
+        "lightgbm": {"name": "4. Modèle Hybride Personnalisé (LightGBM)", "preds": preds_lgb},
+        "deep": {"name": "4b. Modèle Hybride Deep Learning (GRU)", "preds": preds_deep},
     }
 
     report: Dict[str, Any] = {
         "status": "success",
+        "protocol_header": {
+            "title": "AAPS-DT Pilot v1.0",
+            "date": "12 octobre 2026",
+            "institution": "Hôpital Militaire Oued Eddahab - Agadir",
+            "principal_investigator": "Médecin Commandant Lhoussaine Abainou",
+            "primary_endpoint": "MAE à 30 minutes avec IC à 95% (Block Bootstrap)",
+            "benchmark_rule": "Supériorité requise face au modèle de persistance (Delta MAE > 0)"
+        },
         "sample_counts": {
             "total": n,
             "train": len(train_df),
-            "test": len(test_df)
+            "test": len(test_df),
+            "purge_gap_hours": 2
         },
         "horizons": TARGET_HORIZONS,
         "models": {},
+        "primary_endpoint_summary": {},
         "feature_importance": lgb_model.feature_importances_
     }
+
+    # First compute persistence MAE at 30 min as baseline reference
+    target_30m = test_df['target_30m'].values if 'target_30m' in test_df else test_df['sgv'].values
+    pers_30m_pred = preds_pers[30]["p50"] if isinstance(preds_pers[30], dict) else preds_pers[30]
+    pers_30m_mae = float(np.mean(np.abs(target_30m - pers_30m_pred)))
 
     for key, model_info in models_eval.items():
         name = model_info["name"]
@@ -95,15 +110,49 @@ def evaluate_all_models(df_raw: pd.DataFrame) -> Dict[str, Any]:
 
             reg_metrics = calculate_regression_metrics(y_true, y_pred)
             clarke_metrics = clarke_error_grid(y_true, y_pred)
+            from app.ml.metrics import block_bootstrap_ci, calculate_glycemic_stratified_metrics
+            ci_95 = block_bootstrap_ci(y_true, y_pred, block_size=24, n_bootstraps=300)
+            stratified = calculate_glycemic_stratified_metrics(y_true, y_pred)
+
+            # Delta MAE vs persistence baseline (filtering NaNs)
+            p_ref_h = preds_pers[h]["p50"] if isinstance(preds_pers[h], dict) else preds_pers[h]
+            mask_h = ~np.isnan(y_true) & ~np.isnan(p_ref_h)
+            pers_mae_h = float(np.mean(np.abs(y_true[mask_h] - p_ref_h[mask_h]))) if np.any(mask_h) else 0.0
+            
+            delta_mae_pct = round(((pers_mae_h - reg_metrics["mae"]) / max(pers_mae_h, 0.001)) * 100.0, 1)
 
             horizon_results[f"{h}m"] = {
                 **reg_metrics,
-                "clarke": clarke_metrics
+                "ci_95": ci_95,
+                "delta_mae_pct_vs_persistence": delta_mae_pct,
+                "clarke": clarke_metrics,
+                "stratified": stratified
             }
 
         report["models"][key] = {
             "name": name,
             "horizons": horizon_results
         }
+
+    # Primary endpoint synthesis (30 min)
+    primary_models = {}
+    pers_30_ref = report["models"]["persistence"]["horizons"]["30m"]["mae"]
+    for k, v in report["models"].items():
+        h30 = v["horizons"]["30m"]
+        primary_models[k] = {
+            "name": v["name"],
+            "mae": h30["mae"],
+            "ci_95": f"[{h30['ci_95']['ci_low']} - {h30['ci_95']['ci_high']}]",
+            "delta_mae_pct": h30["delta_mae_pct_vs_persistence"],
+            "rmse": h30["rmse"],
+            "bias": h30["bias"],
+            "clarke_ab": h30["clarke"]["zone_ab"],
+            "beats_persistence": bool(h30["mae"] < pers_30_ref)
+        }
+    report["primary_endpoint_summary"] = {
+        "horizon": "30 minutes",
+        "persistence_baseline_mae": pers_30_ref,
+        "results": primary_models
+    }
 
     return report

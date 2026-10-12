@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Any, Optional
 
 from app.ml.features import prepare_ml_dataset, FEATURE_COLUMNS, TARGET_HORIZONS
 from app.ml.simulation import insulin_iob_decay
+from app.core.profile_service import get_active_profile
 
 def carb_cob_decay_custom(t_minutes: float, speed: str = "normal") -> float:
     """
@@ -41,7 +42,7 @@ class DigitalTwinModel:
     Personalized Digital Twin for Glucose-Insulin-Carb Dynamics.
     Combines:
     1. Compartmental Physiological Model (Bergman Minimal Model / Oref0 kinetics).
-    2. Time-Varying Parameters (ISF, CR by 3-hour time blocks).
+    2. Time-Varying Parameters (ISF, CR, Basal, DIA dynamically initialized from Nightscout profile).
     3. Dynamic Scenario Engine with custom carb absorption speeds & insulin profiles.
     """
     def __init__(self):
@@ -49,10 +50,12 @@ class DigitalTwinModel:
         self.gb = 100.0        # Basal glucose (mg/dL)
         self.gezi = 0.005      # Glucose effectiveness at zero insulin (1/min)
         
-        # Time-varying parameters per 3-hour block (8 blocks: 0-3h, 3-6h, ..., 21-24h)
-        self.isf_by_block = {i: 40.0 for i in range(8)}
-        self.cr_by_block = {i: 10.0 for i in range(8)}
-        self.basal_by_block = {i: 0.8 for i in range(8)}
+        # Load user settings from profile
+        user_prof = get_active_profile()
+        self.dia = float(user_prof.get("dia", 7.0))
+        self.isf_by_block = user_prof.get("isf_schedule", {i: 35.0 for i in range(8)})
+        self.cr_by_block = user_prof.get("cr_schedule", {i: 9.0 for i in range(8)})
+        self.basal_by_block = user_prof.get("basal_schedule", {i: 0.85 for i in range(8)})
         
         self.is_fitted = False
 
@@ -62,10 +65,22 @@ class DigitalTwinModel:
 
     def fit(self, df_raw: pd.DataFrame):
         """
-        Fits time-varying ISF, CR, and physiological parameters on historical dataset.
+        Fits time-varying ISF, CR, and physiological parameters on historical dataset,
+        adjusting baseline profile settings with empirical evidence.
         """
+        # Always refresh base profile
+        user_prof = get_active_profile()
+        self.dia = float(user_prof.get("dia", 7.0))
+        for k, v in user_prof.get("isf_schedule", {}).items():
+            self.isf_by_block[k] = v
+        for k, v in user_prof.get("cr_schedule", {}).items():
+            self.cr_by_block[k] = v
+        for k, v in user_prof.get("basal_schedule", {}).items():
+            self.basal_by_block[k] = v
+
         df_feat, feature_cols, target_cols = prepare_ml_dataset(df_raw)
         if df_feat.empty or len(df_feat) < 50:
+            self.is_fitted = True
             return
 
         if 'datetime' in df_feat.columns:
@@ -83,16 +98,17 @@ class DigitalTwinModel:
                     mean_drop = -no_carbs['sgv_diff_15'].mean()
                     mean_iob = no_carbs['iob'].mean()
                     if mean_iob > 0:
-                        est_isf = float(np.clip((mean_drop / mean_iob) * 4.0, 20.0, 90.0))
-                        self.isf_by_block[block_idx] = round(est_isf, 1)
+                        est_isf = float(np.clip((mean_drop / mean_iob) * 4.0, 15.0, 90.0))
+                        # Blend profile ISF with observed data
+                        self.isf_by_block[block_idx] = round(0.5 * self.isf_by_block.get(block_idx, 35.0) + 0.5 * est_isf, 1)
 
                 with_carbs = sub[sub['carbs_sum_2h'] > 10.0]
                 if len(with_carbs) > 5 and 'bolus_sum_1h' in with_carbs.columns:
                     mean_carbs = with_carbs['carbs_sum_2h'].mean()
                     mean_bolus = with_carbs['bolus_sum_1h'].mean()
                     if mean_bolus > 0:
-                        est_cr = float(np.clip(mean_carbs / mean_bolus, 5.0, 25.0))
-                        self.cr_by_block[block_idx] = round(est_cr, 1)
+                        est_cr = float(np.clip(mean_carbs / mean_bolus, 4.0, 25.0))
+                        self.cr_by_block[block_idx] = round(0.5 * self.cr_by_block.get(block_idx, 9.0) + 0.5 * est_cr, 1)
 
         self.is_fitted = True
 
@@ -143,8 +159,8 @@ class DigitalTwinModel:
             hour = dt.hour + dt.minute / 60.0
             block_idx = self.get_time_block(hour)
 
-            isf = isf_override if isf_override is not None else self.isf_by_block.get(block_idx, 40.0)
-            cr = self.cr_by_block.get(block_idx, 10.0)
+            isf = isf_override if isf_override is not None else self.isf_by_block.get(block_idx, 35.0)
+            cr = self.cr_by_block.get(block_idx, 9.0)
             effective_isf = isf * stress_factor
 
             # Baseline simulation value (follows smoothed real trend)
@@ -154,8 +170,8 @@ class DigitalTwinModel:
             delta_min = (i - event_step_idx) * 5.0
             
             if delta_min >= 0:
-                # 1. Added Insulin Effect
-                iob_decay = insulin_iob_decay(delta_min)
+                # 1. Added Insulin Effect with accurate DIA
+                iob_decay = insulin_iob_decay(delta_min, dia_hours=self.dia)
                 iob_absorbed = 1.0 - iob_decay
                 insulin_drop = custom_bolus * effective_isf * iob_absorbed
 
@@ -164,16 +180,16 @@ class DigitalTwinModel:
                 cob_absorbed = 1.0 - cob_decay
                 carbs_rise = custom_carbs * (effective_isf / cr) * cob_absorbed
 
-                # 3. Temp Basal Effect
-                scheduled_basal = self.basal_by_block.get(block_idx, 0.8)
+                # 3. Temp Basal Effect (more basal insulin = drop, less basal insulin = rise)
+                scheduled_basal = self.basal_by_block.get(block_idx, 0.85)
                 basal_delta_rate = (scheduled_basal * (basal_mult - 1.0))
-                basal_effect = (effective_isf / 60.0) * basal_delta_rate * (delta_min / 5.0)
+                basal_insulin_drop = (effective_isf / 60.0) * basal_delta_rate * (delta_min / 5.0)
 
                 # 4. Stress Hepatic Release Effect
                 stress_hepatic_boost = max(0.0, (1.0 - stress_factor) * 40.0)
                 stress_rise = stress_hepatic_boost * (1.0 - np.exp(-delta_min / 45.0))
 
-                net_scenario_delta = carbs_rise - insulin_drop + basal_effect + stress_rise
+                net_scenario_delta = carbs_rise - insulin_drop - basal_insulin_drop + stress_rise
             else:
                 net_scenario_delta = 0.0
 
@@ -200,6 +216,136 @@ class DigitalTwinModel:
 
         return results
 
+    def simulate_full_planned_day(
+        self,
+        start_sgv: float = 110.0,
+        basal_rate: Optional[float] = None,
+        meals_and_boluses: Optional[List[Dict[str, Any]]] = None,
+        isf_override: Optional[float] = None,
+        cr_override: Optional[float] = None,
+        stress_factor: float = 1.0,
+        date_str: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Simulates an entire 24-hour day (288 steps of 5 min, 00:00 to 23:55)
+        based on user-programmed Basal, multiple Boluses, and Carbs meals.
+        Returns continuous simulated trajectory, TIR metrics, and hypo/hyper risk markers.
+        """
+        num_steps = 288
+        base_date = pd.to_datetime(date_str) if date_str else pd.Timestamp.now().normalize()
+        
+        bolus_grid = [0.0] * num_steps
+        carbs_grid = [0.0] * num_steps
+        speeds_grid = ["normal"] * num_steps
+
+        # Map planned meals and boluses onto the 5-min timeline
+        if meals_and_boluses:
+            for item in meals_and_boluses:
+                t_str = item.get("time", "12:00")
+                try:
+                    parts = t_str.split(":")
+                    h, m = int(parts[0]), int(parts[1])
+                    step_idx = min(num_steps - 1, max(0, (h * 60 + m) // 5))
+                    b_val = float(item.get("bolus", 0.0))
+                    c_val = float(item.get("carbs", 0.0))
+                    spd = item.get("speed", "normal")
+                    bolus_grid[step_idx] += b_val
+                    carbs_grid[step_idx] += c_val
+                    speeds_grid[step_idx] = spd
+                except Exception:
+                    pass
+
+        timeline = []
+        curr_sgv = float(start_sgv)
+        dia = self.dia
+
+        for i in range(num_steps):
+            dt = base_date + pd.Timedelta(minutes=5 * i)
+            hour = (i * 5) / 60.0
+            block_idx = self.get_time_block(hour)
+
+            isf = isf_override if isf_override is not None else self.isf_by_block.get(block_idx, 35.0)
+            cr = cr_override if cr_override is not None else self.cr_by_block.get(block_idx, 9.0)
+            sched_basal = self.basal_by_block.get(block_idx, 0.85)
+            effective_isf = isf * stress_factor
+
+            # Incremental drop from all active past boluses
+            total_bolus_drop = 0.0
+            lookback_b = int(min(i, dia * 12))
+            for k in range(lookback_b):
+                past_idx = i - 1 - k
+                b = bolus_grid[past_idx]
+                if b > 0:
+                    t_min_curr = k * 5.0
+                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
+                    frac_curr = 1.0 - insulin_iob_decay(t_min_curr, dia_hours=dia)
+                    frac_prev = 1.0 - insulin_iob_decay(t_min_prev, dia_hours=dia) if k > 0 else 0.0
+                    total_bolus_drop += b * effective_isf * max(0.0, frac_curr - frac_prev)
+
+            # Incremental rise from all active past carbs
+            total_carbs_rise = 0.0
+            lookback_c = int(min(i, 48))
+            for k in range(lookback_c):
+                past_idx = i - 1 - k
+                c = carbs_grid[past_idx]
+                if c > 0:
+                    spd = speeds_grid[past_idx]
+                    t_min_curr = k * 5.0
+                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
+                    frac_curr = 1.0 - carb_cob_decay_custom(t_min_curr, speed=spd)
+                    frac_prev = 1.0 - carb_cob_decay_custom(t_min_prev, speed=spd) if k > 0 else 0.0
+                    total_carbs_rise += c * (effective_isf / cr) * max(0.0, frac_curr - frac_prev)
+
+            # Basal delta (positive if active_basal > sched_basal -> extra insulin -> drop in glucose)
+            active_basal = basal_rate if basal_rate is not None else sched_basal
+            basal_insulin_drop_step = (active_basal - sched_basal) * (effective_isf / 60.0) * 5.0
+
+            # Stress hepatic release
+            stress_hepatic = max(0.0, (1.0 - stress_factor) * 20.0) * (5.0 / 60.0)
+
+            # Homeostatic hepatic liver balance
+            homeostasis = (105.0 - curr_sgv) * 0.015
+
+            step_delta = total_carbs_rise - total_bolus_drop - basal_insulin_drop_step + stress_hepatic + homeostasis
+            curr_sgv = float(np.clip(curr_sgv + step_delta, 35.0, 380.0))
+
+            uncertainty = 8.0 + min(20.0, abs(total_carbs_rise - total_bolus_drop) * 0.4)
+            sim_val = round(curr_sgv, 1)
+
+            timeline.append({
+                "datetime": dt.strftime('%Y-%m-%dT%H:%M:%S'),
+                "step": i,
+                "hour_str": dt.strftime('%H:%M'),
+                "simulated_sgv": sim_val,
+                "p10": round(max(35.0, sim_val - uncertainty), 1),
+                "p90": round(min(380.0, sim_val + uncertainty), 1),
+                "bolus": round(bolus_grid[i], 2),
+                "carbs": round(carbs_grid[i], 1)
+            })
+
+        sgv_vals = [pt["simulated_sgv"] for pt in timeline]
+        tir = round(float(sum(1 for s in sgv_vals if 70.0 <= s <= 180.0) / len(sgv_vals) * 100.0), 1)
+        tbr = round(float(sum(1 for s in sgv_vals if s < 70.0) / len(sgv_vals) * 100.0), 1)
+        tar = round(float(sum(1 for s in sgv_vals if s > 180.0) / len(sgv_vals) * 100.0), 1)
+        mean_g = round(float(np.mean(sgv_vals)), 1)
+        min_g = round(float(min(sgv_vals)), 1)
+        max_g = round(float(max(sgv_vals)), 1)
+
+        return {
+            "status": "success",
+            "summary": {
+                "tir": tir,
+                "tbr": tbr,
+                "tar": tar,
+                "mean_sgv": mean_g,
+                "min_sgv": min_g,
+                "max_sgv": max_g,
+                "total_bolus": round(sum(bolus_grid), 2),
+                "total_carbs": round(sum(carbs_grid), 1)
+            },
+            "timeline": timeline
+        }
+
     def simulate_trajectory(
         self,
         start_sgv: float,
@@ -209,12 +355,16 @@ class DigitalTwinModel:
         carbs_series: List[float],
         basal_series: List[float],
         start_datetime: pd.Timestamp,
-        num_steps: int = 288
+        num_steps: int = 288,
+        real_sgv_series: Optional[List[float]] = None
     ) -> List[Dict[str, Any]]:
         """
-        Calculates dynamic simulated trajectory for past day replay.
+        Calculates dynamic simulated trajectory for past day replay using continuous
+        pharmacokinetic convolution of past boluses and meal absorption combined with
+        an innovation filter to prevent open-loop drift while faithfully reproducing
+        metabolic response dynamics.
         """
-        current_sgv = start_sgv
+        curr_state = float(start_sgv)
         res = []
 
         for i in range(num_steps):
@@ -222,29 +372,74 @@ class DigitalTwinModel:
             hour = dt.hour + dt.minute / 60.0
             block_idx = self.get_time_block(hour)
 
-            isf = self.isf_by_block.get(block_idx, 40.0)
-            cr = self.cr_by_block.get(block_idx, 10.0)
-            basal_sched = self.basal_by_block.get(block_idx, 0.8)
+            isf = self.isf_by_block.get(block_idx, 35.0)
+            cr = self.cr_by_block.get(block_idx, 9.0)
+            basal_sched = self.basal_by_block.get(block_idx, 0.85)
 
-            bolus_val = bolus_series[i] if i < len(bolus_series) else 0.0
-            carbs_val = carbs_series[i] if i < len(carbs_series) else 0.0
-            basal_val = basal_series[i] if i < len(basal_series) else basal_sched
+            if i == 0:
+                sim_val = round(curr_state, 1)
+                res.append({
+                    "datetime": dt.strftime('%Y-%m-%dT%H:%M:%S'),
+                    "simulated_sgv": sim_val,
+                    "p10": round(max(35.0, sim_val - 12.0), 1),
+                    "p90": round(min(380.0, sim_val + 12.0), 1)
+                })
+                continue
 
-            # Pharmacokinetic delta over 5-min step
-            insulin_effect = bolus_val * isf * 0.18
-            carbs_effect = carbs_val * (isf / cr) * 0.22
-            basal_effect = (basal_val - basal_sched) * (isf / 60.0) * 5.0
+            # 1. Cumulative incremental effect from past boluses
+            total_bolus_drop_step = 0.0
+            lookback_steps = int(min(i, self.dia * 12))  # DIA in 5-min intervals
+            for k in range(lookback_steps):
+                past_idx = i - 1 - k
+                b_val = bolus_series[past_idx] if past_idx < len(bolus_series) else 0.0
+                if b_val > 0:
+                    t_min_curr = k * 5.0
+                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
+                    frac_curr = 1.0 - insulin_iob_decay(t_min_curr, dia_hours=self.dia)
+                    frac_prev = 1.0 - insulin_iob_decay(t_min_prev, dia_hours=self.dia) if k > 0 else 0.0
+                    d_absorbed = max(0.0, frac_curr - frac_prev)
+                    total_bolus_drop_step += b_val * isf * d_absorbed
 
-            step_delta = carbs_effect - insulin_effect + basal_effect
-            # Smooth pull towards physiological mean (110 mg/dL)
-            hepatic_pull = (110.0 - current_sgv) * 0.02
-            current_sgv = float(np.clip(current_sgv + step_delta + hepatic_pull, 40.0, 380.0))
+            # 2. Cumulative incremental effect from past carbs
+            total_carbs_rise_step = 0.0
+            lookback_carbs = int(min(i, 36))  # 3 hours
+            for k in range(lookback_carbs):
+                past_idx = i - 1 - k
+                c_val = carbs_series[past_idx] if past_idx < len(carbs_series) else 0.0
+                if c_val > 0:
+                    t_min_curr = k * 5.0
+                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
+                    frac_curr = 1.0 - carb_cob_decay_custom(t_min_curr, speed="normal")
+                    frac_prev = 1.0 - carb_cob_decay_custom(t_min_prev, speed="normal") if k > 0 else 0.0
+                    d_absorbed = max(0.0, frac_curr - frac_prev)
+                    total_carbs_rise_step += c_val * (isf / cr) * d_absorbed
+
+            # 3. Temp basal delta effect vs scheduled profile (more insulin = drop in glucose)
+            basal_val = basal_series[i - 1] if (i - 1) < len(basal_series) else basal_sched
+            basal_drop = (basal_val - basal_sched) * (isf / 60.0) * 5.0
+
+            # 4. Endogenous Glucose Production (EGP) homeostatic pull towards basal target (115 mg/dL)
+            egp_homeostasis = (115.0 - curr_state) * 0.03
+            
+            # Physical metabolic forward step
+            projected = curr_state + total_carbs_rise_step - total_bolus_drop_step - basal_drop + egp_homeostasis
+
+            # 5. Continuous innovation update if real measurement is available
+            if real_sgv_series and len(real_sgv_series) > (i - 1):
+                real_prev = real_sgv_series[i - 1]
+                # 70% physiological model mechanics, 30% sensor state feedback
+                curr_state = float(np.clip(0.70 * projected + 0.30 * real_prev, 35.0, 380.0))
+            else:
+                curr_state = float(np.clip(projected, 35.0, 380.0))
+
+            sim_val = round(curr_state, 1)
+            uncertainty = 10.0 + min(15.0, abs(total_carbs_rise_step - total_bolus_drop_step) * 0.5)
 
             res.append({
                 "datetime": dt.strftime('%Y-%m-%dT%H:%M:%S'),
-                "simulated_sgv": round(current_sgv, 1),
-                "p10": round(max(40.0, current_sgv - 12.0), 1),
-                "p90": round(min(380.0, current_sgv + 12.0), 1)
+                "simulated_sgv": sim_val,
+                "p10": round(max(35.0, sim_val - uncertainty), 1),
+                "p90": round(min(380.0, sim_val + uncertainty), 1)
             })
 
         return res

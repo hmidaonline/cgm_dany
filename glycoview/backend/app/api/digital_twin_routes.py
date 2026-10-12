@@ -17,7 +17,8 @@ TWIN_MODEL = DigitalTwinModel()
 
 def _get_raw_data() -> pd.DataFrame:
     try:
-        df_raw = get_processed_dataframe(days=30)
+        # Load all available database history from 2026-10-01 to today
+        df_raw = get_processed_dataframe(since="2026-10-01")
     except Exception:
         df_raw = pd.DataFrame()
 
@@ -40,6 +41,21 @@ def _get_raw_data() -> pd.DataFrame:
         TWIN_MODEL.fit(df_raw)
 
     return df_raw
+
+class PlannedDayMeal(BaseModel):
+    time: str = "12:00"  # "HH:MM"
+    label: Optional[str] = "Repas"
+    carbs: float = 0.0
+    bolus: float = 0.0
+    speed: str = "normal"  # "fast", "normal", "slow"
+
+class PlannedDayRequest(BaseModel):
+    start_sgv: float = 110.0
+    basal_rate: Optional[float] = None
+    isf_override: Optional[float] = None
+    cr_override: Optional[float] = None
+    stress_factor: float = 1.0  # 0.7 = Stress, 1.0 = Normal, 1.4 = Exercice
+    meals: List[PlannedDayMeal] = []
 
 class TwinScenarioRequest(BaseModel):
     target_date: Optional[str] = None
@@ -128,6 +144,31 @@ def run_twin_scenario(req: TwinScenarioRequest):
         "timeline": scenario_timeline
     }
 
+@router.post("/simulate-planned-day")
+def simulate_planned_day(req: PlannedDayRequest):
+    """
+    Simulates a full 24-hour day from scratch based on user programmed events:
+    - Initial SGV at 00:00
+    - Basal rate (or schedule default)
+    - Multiple planned meals & boluses throughout the day (time, carbs, bolus, digestion speed)
+    - ISF and CR overrides
+    - Physical condition / Stress factor
+    """
+    _get_raw_data()  # Ensure model is fitted
+    meals_dict = [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in req.meals]
+    
+    result = TWIN_MODEL.simulate_full_planned_day(
+        start_sgv=req.start_sgv,
+        basal_rate=req.basal_rate,
+        meals_and_boluses=meals_dict,
+        isf_override=req.isf_override,
+        cr_override=req.cr_override,
+        stress_factor=req.stress_factor
+    )
+    result["inputs"] = req.model_dump() if hasattr(req, "model_dump") else req.dict()
+    result["disclaimer"] = "Simulation prospective basée sur votre jumeau numérique. Ne pas utiliser pour décider d'une dose."
+    return result
+
 @router.get("/settings-analysis")
 def get_settings_analysis():
     """
@@ -161,3 +202,21 @@ def get_validation_report():
         },
         "disclaimer": "Modèle d'analyse et de simulation uniquement. Aucune écriture dans AAPS ni Nightscout."
     }
+
+@router.get("/protocol-benchmark")
+def get_protocol_benchmark():
+    """
+    Executes and returns the clinical research validation benchmark specified in
+    Protocol AAPS-DT Pilot v1.0 (Hôpital Militaire Oued Eddahab - Agadir).
+    Compares 4 reference models:
+    1. Persistance (T-0)
+    2. Référence temporelle simple (Linéaire)
+    3. Modèle physiologique (AAPS/Oref0)
+    4. Modèle hybride personnalisé (Jumeau Numérique LightGBM)
+    Calculates Primary Endpoint (MAE 30m with 95% Block Bootstrap CI & delta vs Persistence),
+    Secondary endpoints (60m, 120m, Bias, Glycemic strata Hypo/Hyper, Clarke EGA).
+    """
+    from app.ml.evaluation import evaluate_all_models
+    df_raw = _get_raw_data()
+    return evaluate_all_models(df_raw)
+

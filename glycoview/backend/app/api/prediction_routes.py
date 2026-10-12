@@ -56,7 +56,7 @@ def get_predictions(
     Returns timestamps, historical SGV, predicted values (p50), and confidence bands (p10, p90).
     """
     try:
-        df_raw = get_processed_dataframe(days=7)
+        df_raw = get_processed_dataframe(since="2026-10-01")
     except Exception as e:
         # Fallback empty dataframe if DB offline
         df_raw = pd.DataFrame()
@@ -182,9 +182,10 @@ def get_predictions(
 
 @router.post("/train")
 def train_models():
-    """Trigger retraining of LightGBM and Deep Learning models on available dataset."""
+    """Trigger retraining of LightGBM and Deep Learning models on all available database history."""
     try:
-        df_raw = get_processed_dataframe(days=30)
+        # Load all records from 2026-10-01 to present
+        df_raw = get_processed_dataframe(since="2026-10-01")
     except Exception:
         df_raw = pd.DataFrame()
 
@@ -229,7 +230,7 @@ def get_evaluation():
         return EVAL_CACHE
 
     try:
-        df_raw = get_processed_dataframe(days=14)
+        df_raw = get_processed_dataframe(since="2026-10-01")
     except Exception:
         df_raw = pd.DataFrame()
 
