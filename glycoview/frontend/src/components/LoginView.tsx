@@ -303,69 +303,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             </label>
           </div>
 
-          {/* Quick preset selector */}
-          <div style={{
-            background: 'rgba(15, 23, 42, 0.5)',
-            border: '1px solid rgba(148, 163, 184, 0.12)',
-            borderRadius: '12px',
-            padding: '0.65rem 0.75rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.45rem'
-          }}>
-            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Connexion Rapide par Rôle :
-            </span>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('dany');
-                  setPassword('glycoview2026');
-                  setError(null);
-                }}
-                style={{
-                  flex: 1,
-                  background: username === 'dany' || username === 'admin' ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                  border: username === 'dany' || username === 'admin' ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(148, 163, 184, 0.15)',
-                  color: '#38bdf8',
-                  cursor: 'pointer',
-                  borderRadius: '8px',
-                  padding: '0.4rem',
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                👤 Patient (Ahmed DANY)
-              </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername('abainou');
-                  setPassword('glycoview2026');
-                  setError(null);
-                }}
-                style={{
-                  flex: 1,
-                  background: username === 'abainou' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                  border: username === 'abainou' ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid rgba(148, 163, 184, 0.15)',
-                  color: '#a5b4fc',
-                  cursor: 'pointer',
-                  borderRadius: '8px',
-                  padding: '0.4rem',
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                🩺 Médecin (MC Lhoussaine Abainou)
-              </button>
-            </div>
-          </div>
 
           {/* Submit Button */}
           <button

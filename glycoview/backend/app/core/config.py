@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     auth_secret_key: str | None = "glycoview-secret-key-2026"
     auth_username: str = "admin"
     auth_password: str = "glycoview2026"
+    patient_username: str = "dany"
+    patient_password: str = "glycoview2026"
+    doctor_username: str = "abainou"
+    doctor_password: str = "glycoview2026"
 
     model_config = SettingsConfigDict(
         env_file=[".env", "../.env"], 

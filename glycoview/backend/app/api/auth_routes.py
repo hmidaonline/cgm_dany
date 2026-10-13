@@ -106,28 +106,36 @@ def login(req: LoginRequest):
     uname = req.username.strip().lower()
     pwd = req.password.strip()
 
-    valid_usernames = {settings.auth_username.lower(), "admin", "dany", "ahmed", "patient", "abainou", "medecin", "docteur", "investigateur"}
-    valid_passwords = {settings.auth_password, "glycoview2026", "admin123", "aaps2026"}
-    if settings.auth_secret_key:
-        valid_passwords.add(settings.auth_secret_key)
+    is_doctor = uname in [settings.doctor_username.lower(), "abainou", "medecin", "docteur", "investigateur"]
+    is_patient = uname in [settings.patient_username.lower(), "dany", "ahmed", "patient"]
+    is_admin = uname in [settings.auth_username.lower(), "admin"]
 
-    is_valid = (uname in valid_usernames and pwd in valid_passwords) or (pwd in valid_passwords and len(uname) > 0)
+    valid = False
+    name = "Utilisateur Autorisé"
+    role = "Observateur"
+    email = "contact@glycoview.local"
 
-    if not is_valid:
-        raise HTTPException(
-            status_code=401,
-            detail="Identifiants incorrects. Veuillez vérifier votre nom d'utilisateur et votre mot de passe."
-        )
-
-    # Determine display name and clinical role
-    if uname in ["abainou", "medecin", "docteur", "investigateur"]:
+    if is_doctor and pwd in [settings.doctor_password, settings.auth_password]:
+        valid = True
         name = "Médecin Commandant Lhoussaine Abainou"
         role = "Investigateur Principal (Hôpital Militaire Oued Eddahab)"
         email = "lhoussaine.abainou@hmoe.ma"
-    else:
+    elif is_patient and pwd in [settings.patient_password, settings.auth_password]:
+        valid = True
         name = "Ahmed DANY"
         role = "Patient Investigé (Protocole AAPS-DT Pilot v1.0)"
         email = "dany@andzoa.ma"
+    elif is_admin and pwd == settings.auth_password:
+        valid = True
+        name = "Administrateur Système"
+        role = "Administrateur"
+        email = "admin@glycoview.local"
+
+    if not valid:
+        raise HTTPException(
+            status_code=401,
+            detail="Identifiants incorrects. Accès refusé."
+        )
 
     token = create_access_token(username=uname, role=role)
 
