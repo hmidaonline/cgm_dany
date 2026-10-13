@@ -75,6 +75,7 @@ def evaluate_all_models(df_raw: pd.DataFrame) -> Dict[str, Any]:
             "title": "AAPS-DT Pilot v1.0",
             "date": "12 octobre 2026",
             "institution": "Hôpital Militaire Oued Eddahab - Agadir",
+            "patient_subject": "Ahmed DANY (Étude N-of-1)",
             "principal_investigator": "Médecin Commandant Lhoussaine Abainou",
             "primary_endpoint": "MAE à 30 minutes avec IC à 95% (Block Bootstrap)",
             "benchmark_rule": "Supériorité requise face au modèle de persistance (Delta MAE > 0)"

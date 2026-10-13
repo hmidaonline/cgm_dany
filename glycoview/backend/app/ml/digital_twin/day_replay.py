@@ -80,7 +80,11 @@ def replay_past_day(
             "p90": p90,
             "residual": round(real_val - sim_val, 1) if real_val is not None else 0.0,
             "bolus": round(float(row.get('bolus', 0.0)), 2),
-            "carbs": round(float(row.get('carbs', 0.0)), 1)
+            "carbs": round(float(row.get('carbs', 0.0)), 1),
+            "real_iob": round(float(row.get('iob', 0.0)), 2) if not np.isnan(row.get('iob', 0.0)) else 0.0,
+            "real_cob": round(float(row.get('cob', 0.0)), 1) if not np.isnan(row.get('cob', 0.0)) else 0.0,
+            "simulated_iob": sim_points[idx].get("simulated_iob", 0.0),
+            "simulated_cob": sim_points[idx].get("simulated_cob", 0.0)
         })
 
     # Compute regression & clinical safety metrics

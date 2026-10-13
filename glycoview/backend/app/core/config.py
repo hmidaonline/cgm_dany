@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
     cache_dir: str = "./cache"
-    auth_secret_key: str | None = None
+    auth_secret_key: str | None = "glycoview-secret-key-2026"
+    auth_username: str = "admin"
+    auth_password: str = "glycoview2026"
 
     model_config = SettingsConfigDict(
         env_file=[".env", "../.env"], 

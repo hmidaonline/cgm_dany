@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, LineChart, BrainCircuit, Activity, Settings as SettingsIcon, Cpu } from 'lucide-react';
+import {
+  LayoutDashboard, LineChart, BrainCircuit, Activity,
+  Cpu, Database, LogOut, ShieldCheck, PanelLeftClose, PanelLeftOpen
+} from 'lucide-react';
 import GlucoseChart from './components/GlucoseChart';
 import PredictionView from './components/PredictionView';
 import DigitalTwinView from './components/DigitalTwinView';
+import TrainingDataView from './components/TrainingDataView';
+import LoginView from './components/LoginView';
 import { API_BASE_URL } from './config';
 
 interface Metrics {
@@ -29,21 +34,60 @@ interface Metrics {
 }
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem('glycoview_user') || sessionStorage.getItem('glycoview_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [authToken, setAuthToken] = useState<string | null>(() => {
+    return localStorage.getItem('glycoview_token') || sessionStorage.getItem('glycoview_token');
+  });
+
   const [metrics, setMetrics] = useState<Metrics>({});
   const [availableDays, setAvailableDays] = useState<{ date: string; low: number; target: number; high: number }[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('glycoview_sidebar_collapsed') === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('glycoview_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
+
+  const handleLoginSuccess = (user: any, token: string) => {
+    setCurrentUser(user);
+    setAuthToken(token);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('glycoview_token');
+    localStorage.removeItem('glycoview_user');
+    sessionStorage.removeItem('glycoview_token');
+    sessionStorage.removeItem('glycoview_user');
+    setCurrentUser(null);
+    setAuthToken(null);
+  };
 
   // Load available days from DB
   useEffect(() => {
+    if (!authToken) return;
     fetch(`${API_BASE_URL}/api/v1/analysis/days`)
       .then(res => res.json())
       .then(days => setAvailableDays(days))
       .catch(err => console.error("Error fetching available days:", err));
-  }, []);
+  }, [authToken]);
 
   // Load metrics (global or for selected day)
   useEffect(() => {
+    if (!authToken) return;
     const url = selectedDate
       ? `${API_BASE_URL}/api/v1/analysis/metrics?date=${selectedDate}`
       : `${API_BASE_URL}/api/v1/analysis/metrics`;
@@ -52,7 +96,12 @@ function App() {
       .then(res => res.json())
       .then(data => setMetrics(data))
       .catch(err => console.error("Error fetching metrics:", err));
-  }, [selectedDate]);
+  }, [selectedDate, authToken]);
+
+  // If not authenticated, render Login Page
+  if (!authToken || !currentUser) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+  }
 
   const selectedDateFormatted = selectedDate
     ? new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -60,32 +109,149 @@ function App() {
 
   return (
     <>
-      <aside className="sidebar">
-        <div className="brand">
-          <Activity className="w-6 h-6" style={{ color: "var(--accent)" }} />
-          GlycoView
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="brand" style={{ display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between', marginBottom: '1.5rem', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', overflow: 'hidden' }}>
+            <Activity className="w-6 h-6" style={{ color: "var(--accent)", flexShrink: 0 }} />
+            {!sidebarCollapsed && <span className="brand-text">GlycoView</span>}
+          </div>
+          <button
+            onClick={toggleSidebar}
+            title={sidebarCollapsed ? "Agrandir le menu (Sidebar)" : "Réduire le menu (Sidebar)"}
+            className="sidebar-toggle-btn"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              padding: '0.35rem',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </button>
         </div>
         <nav className="nav-menu">
-          <div className={`nav-item ${activeMenu === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveMenu('dashboard')}>
-            <LayoutDashboard className="w-5 h-5" /> Dashboard
+          <div
+            className={`nav-item ${activeMenu === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('dashboard')}
+            title="Dashboard (Aperçu Général)"
+          >
+            <LayoutDashboard className="w-5 h-5" style={{ flexShrink: 0 }} />
+            {!sidebarCollapsed && <span className="nav-text">Dashboard</span>}
           </div>
-          <div className={`nav-item ${activeMenu === 'analysis' ? 'active' : ''}`} onClick={() => setActiveMenu('analysis')}>
-            <LineChart className="w-5 h-5" /> Analyses (J3)
+          <div
+            className={`nav-item ${activeMenu === 'training_data' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('training_data')}
+            title="Données d'Entraînement ML (Extraction & Formatage)"
+          >
+            <Database className="w-5 h-5" style={{ flexShrink: 0 }} />
+            {!sidebarCollapsed && <span className="nav-text">Données d'Entraînement</span>}
           </div>
-          <div className={`nav-item ${activeMenu === 'prediction' ? 'active' : ''}`} onClick={() => setActiveMenu('prediction')}>
-            <BrainCircuit className="w-5 h-5" /> Prédictions (J4)
+          <div
+            className={`nav-item ${activeMenu === 'analysis' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('analysis')}
+            title="Analyses Statistiques (J3)"
+          >
+            <LineChart className="w-5 h-5" style={{ flexShrink: 0 }} />
+            {!sidebarCollapsed && <span className="nav-text">Analyses (J3)</span>}
           </div>
-          <div className={`nav-item ${activeMenu === 'digital_twin' ? 'active' : ''}`} onClick={() => setActiveMenu('digital_twin')}>
-            <Cpu className="w-5 h-5" /> Jumeau Numérique (J6)
+          <div
+            className={`nav-item ${activeMenu === 'prediction' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('prediction')}
+            title="Modèles de Prédictions (J4)"
+          >
+            <BrainCircuit className="w-5 h-5" style={{ flexShrink: 0 }} />
+            {!sidebarCollapsed && <span className="nav-text">Prédictions (J4)</span>}
+          </div>
+          <div
+            className={`nav-item ${activeMenu === 'digital_twin' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('digital_twin')}
+            title="Jumeau Numérique Physiologique (J6)"
+          >
+            <Cpu className="w-5 h-5" style={{ flexShrink: 0 }} />
+            {!sidebarCollapsed && <span className="nav-text">Jumeau Numérique (J6)</span>}
           </div>
           <div style={{ flex: 1 }}></div>
-          <div className="nav-item">
-            <SettingsIcon className="w-5 h-5" /> Paramètres
+
+          {/* User profile & Logout footer */}
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.6)',
+            border: '1px solid rgba(148, 163, 184, 0.12)',
+            borderRadius: '12px',
+            padding: sidebarCollapsed ? '0.5rem 0.2rem' : '0.85rem',
+            marginTop: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: sidebarCollapsed ? 'center' : 'stretch',
+            gap: '0.4rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}
+                 title={sidebarCollapsed ? `${currentUser?.name || 'Ahmed DANY'} (${currentUser?.role || 'Patient Investigé'})` : undefined}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #6366f1, #38bdf8)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '700',
+                color: '#fff',
+                fontSize: '0.85rem',
+                flexShrink: 0
+              }}>
+                {currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).slice(0, 2).join('') : 'AD'}
+              </div>
+              {!sidebarCollapsed && (
+                <div style={{ overflow: 'hidden', flex: 1 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#f8fafc', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                    {currentUser?.name || 'Ahmed DANY'}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#38bdf8', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                    {currentUser?.role || 'Patient Investigé'}
+                  </div>
+                  <div style={{ fontSize: '0.62rem', color: '#64748b', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                    Dr : MC Lhoussaine Abainou
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleLogout}
+              title="Déconnexion"
+              style={{
+                width: sidebarCollapsed ? '34px' : '100%',
+                height: sidebarCollapsed ? '34px' : 'auto',
+                marginTop: sidebarCollapsed ? '0.2rem' : '0.65rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#f87171',
+                borderRadius: '8px',
+                padding: sidebarCollapsed ? '0' : '0.4rem',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <LogOut style={{ width: '13px', height: '13px', flexShrink: 0 }} />
+              {!sidebarCollapsed && <span>Déconnexion</span>}
+            </button>
           </div>
         </nav>
       </aside>
 
-      <div className="main-wrapper">
+      <div className={`main-wrapper ${sidebarCollapsed ? 'expanded-content' : ''}`}>
         <header className="header">
           <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {activeMenu === 'dashboard' && (
@@ -95,12 +261,28 @@ function App() {
                 <span>Aperçu Général <small style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 'normal' }}>● En direct</small></span>
               )
             )}
+            {activeMenu === 'training_data' && 'Données d\'Entraînement ML (Extraction & Formatage)'}
             {activeMenu === 'analysis' && 'Analyses Statistiques'}
             {activeMenu === 'prediction' && 'Modèles de Prédiction'}
             {activeMenu === 'digital_twin' && 'Jumeau Numérique Physiologique (J6)'}
           </div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            {metrics.mean !== undefined ? `Moyenne : ${metrics.mean} mg/dL` : 'Chargement...'}
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {activeMenu === 'dashboard' && metrics.mean !== undefined && (
+              <span>Moyenne : {metrics.mean} mg/dL</span>
+            )}
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.75rem',
+              color: '#38bdf8',
+              background: 'rgba(56, 189, 248, 0.1)',
+              padding: '0.2rem 0.6rem',
+              borderRadius: '12px',
+              border: '1px solid rgba(56, 189, 248, 0.2)'
+            }}>
+              <ShieldCheck style={{ width: '12px', height: '12px' }} /> Connecté : {currentUser?.username || 'admin'}
+            </span>
           </div>
         </header>
 
@@ -238,6 +420,10 @@ function App() {
                 </div>
               </div>
             </div>
+          )}
+
+          {activeMenu === 'training_data' && (
+            <TrainingDataView />
           )}
 
           {activeMenu === 'prediction' && (

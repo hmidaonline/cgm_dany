@@ -6,23 +6,26 @@ from app.ml.features import prepare_ml_dataset, FEATURE_COLUMNS, TARGET_HORIZONS
 from app.ml.simulation import insulin_iob_decay
 from app.core.profile_service import get_active_profile
 
+import math
+
 def carb_cob_decay_custom(t_minutes: float, speed: str = "normal") -> float:
     """
     Carb absorption decay curve with custom digestion speeds:
     - 'fast': rapid sugars, juice, candy (peak ~25 min, duration 120 min)
     - 'normal': balanced meal (peak ~45 min, duration 180 min)
-    - 'slow': high fat/protein meal, pizza, pasta (peak ~90 min, duration 300 min)
-    Returns remaining fraction of unabsorbed carbs at t_minutes.
+    - 'slow': high fat/protein meal, pizza, pasta (peak ~75 min, duration 300 min)
+    Returns remaining fraction of unabsorbed carbs (active COB fraction) at t_minutes in [0.0, 1.0].
+    Strictly continuous and decays smoothly to 0.0 at duration.
     """
     if t_minutes <= 0:
         return 1.0
-        
+
     if speed == "fast":
         duration = 120.0
         peak = 25.0
     elif speed == "slow":
         duration = 300.0
-        peak = 90.0
+        peak = 75.0
     else:  # normal
         duration = 180.0
         peak = 45.0
@@ -30,12 +33,11 @@ def carb_cob_decay_custom(t_minutes: float, speed: str = "normal") -> float:
     if t_minutes >= duration:
         return 0.0
 
-    if t_minutes <= peak:
-        absorbed_fraction = 0.5 * (t_minutes / peak) ** 2 * (peak / duration)
-    else:
-        absorbed_fraction = (t_minutes - 0.5 * peak) / duration
-
-    return float(np.clip(1.0 - absorbed_fraction, 0.0, 1.0))
+    # Rate of appearance peaks at peak with smooth decay to duration
+    tau = peak * (1.0 - peak / duration) / (1.0 - 2.0 * peak / duration)
+    num = (1.0 + t_minutes / tau) * math.exp(-t_minutes / tau) - (1.0 + duration / tau) * math.exp(-duration / tau)
+    den = 1.0 - (1.0 + duration / tau) * math.exp(-duration / tau)
+    return float(np.clip(num / den, 0.0, 1.0))
 
 class DigitalTwinModel:
     """
@@ -183,7 +185,7 @@ class DigitalTwinModel:
                 # 3. Temp Basal Effect (more basal insulin = drop, less basal insulin = rise)
                 scheduled_basal = self.basal_by_block.get(block_idx, 0.85)
                 basal_delta_rate = (scheduled_basal * (basal_mult - 1.0))
-                basal_insulin_drop = (effective_isf / 60.0) * basal_delta_rate * (delta_min / 5.0)
+                basal_insulin_drop = (effective_isf * basal_delta_rate * (delta_min / 60.0))
 
                 # 4. Stress Hepatic Release Effect
                 stress_hepatic_boost = max(0.0, (1.0 - stress_factor) * 40.0)
@@ -192,6 +194,8 @@ class DigitalTwinModel:
                 net_scenario_delta = carbs_rise - insulin_drop - basal_insulin_drop + stress_rise
             else:
                 net_scenario_delta = 0.0
+                iob_decay = 0.0
+                cob_decay = 0.0
 
             scenario_sgv = float(np.clip(base_sgv + net_scenario_delta, 30.0, 400.0))
 
@@ -211,6 +215,8 @@ class DigitalTwinModel:
                 "delta_from_baseline": round(net_scenario_delta, 1),
                 "p10": round(p10, 1),
                 "p90": round(p90, 1),
+                "simulated_iob": round(custom_bolus * iob_decay, 2) if delta_min >= 0 else 0.0,
+                "simulated_cob": round(custom_carbs * cob_decay, 1) if delta_min >= 0 else 0.0,
                 "is_event_point": i == event_step_idx
             })
 
@@ -276,25 +282,27 @@ class DigitalTwinModel:
                 past_idx = i - 1 - k
                 b = bolus_grid[past_idx]
                 if b > 0:
-                    t_min_curr = k * 5.0
-                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
-                    frac_curr = 1.0 - insulin_iob_decay(t_min_curr, dia_hours=dia)
-                    frac_prev = 1.0 - insulin_iob_decay(t_min_prev, dia_hours=dia) if k > 0 else 0.0
-                    total_bolus_drop += b * effective_isf * max(0.0, frac_curr - frac_prev)
+                    t_min_curr = (k + 1) * 5.0
+                    t_min_prev = k * 5.0
+                    frac_absorbed_step = insulin_iob_decay(t_min_prev, dia_hours=dia) - insulin_iob_decay(t_min_curr, dia_hours=dia)
+                    total_bolus_drop += b * effective_isf * max(0.0, frac_absorbed_step)
 
             # Incremental rise from all active past carbs
             total_carbs_rise = 0.0
-            lookback_c = int(min(i, 48))
+            lookback_c = int(min(i, 60))
             for k in range(lookback_c):
                 past_idx = i - 1 - k
                 c = carbs_grid[past_idx]
                 if c > 0:
                     spd = speeds_grid[past_idx]
-                    t_min_curr = k * 5.0
-                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
-                    frac_curr = 1.0 - carb_cob_decay_custom(t_min_curr, speed=spd)
-                    frac_prev = 1.0 - carb_cob_decay_custom(t_min_prev, speed=spd) if k > 0 else 0.0
-                    total_carbs_rise += c * (effective_isf / cr) * max(0.0, frac_curr - frac_prev)
+                    t_min_curr = (k + 1) * 5.0
+                    t_min_prev = k * 5.0
+                    frac_absorbed_step = carb_cob_decay_custom(t_min_prev, speed=spd) - carb_cob_decay_custom(t_min_curr, speed=spd)
+                    total_carbs_rise += c * (effective_isf / cr) * max(0.0, frac_absorbed_step)
+
+            # Active continuous IOB and COB on board at step i
+            current_iob = sum(bolus_grid[k] * insulin_iob_decay((i - k) * 5.0, dia_hours=dia) for k in range(i + 1) if bolus_grid[k] > 0)
+            current_cob = sum(carbs_grid[k] * carb_cob_decay_custom((i - k) * 5.0, speed=speeds_grid[k]) for k in range(i + 1) if carbs_grid[k] > 0)
 
             # Basal delta (positive if active_basal > sched_basal -> extra insulin -> drop in glucose)
             active_basal = basal_rate if basal_rate is not None else sched_basal
@@ -320,7 +328,9 @@ class DigitalTwinModel:
                 "p10": round(max(35.0, sim_val - uncertainty), 1),
                 "p90": round(min(380.0, sim_val + uncertainty), 1),
                 "bolus": round(bolus_grid[i], 2),
-                "carbs": round(carbs_grid[i], 1)
+                "carbs": round(carbs_grid[i], 1),
+                "iob": round(current_iob, 2),
+                "cob": round(current_cob, 1)
             })
 
         sgv_vals = [pt["simulated_sgv"] for pt in timeline]
@@ -341,7 +351,9 @@ class DigitalTwinModel:
                 "min_sgv": min_g,
                 "max_sgv": max_g,
                 "total_bolus": round(sum(bolus_grid), 2),
-                "total_carbs": round(sum(carbs_grid), 1)
+                "total_carbs": round(sum(carbs_grid), 1),
+                "max_iob": round(max(pt["iob"] for pt in timeline), 2),
+                "max_cob": round(max(pt["cob"] for pt in timeline), 1)
             },
             "timeline": timeline
         }
@@ -382,7 +394,9 @@ class DigitalTwinModel:
                     "datetime": dt.strftime('%Y-%m-%dT%H:%M:%S'),
                     "simulated_sgv": sim_val,
                     "p10": round(max(35.0, sim_val - 12.0), 1),
-                    "p90": round(min(380.0, sim_val + 12.0), 1)
+                    "p90": round(min(380.0, sim_val + 12.0), 1),
+                    "simulated_iob": round(start_iob, 2),
+                    "simulated_cob": round(start_cob, 1)
                 })
                 continue
 
@@ -393,26 +407,26 @@ class DigitalTwinModel:
                 past_idx = i - 1 - k
                 b_val = bolus_series[past_idx] if past_idx < len(bolus_series) else 0.0
                 if b_val > 0:
-                    t_min_curr = k * 5.0
-                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
-                    frac_curr = 1.0 - insulin_iob_decay(t_min_curr, dia_hours=self.dia)
-                    frac_prev = 1.0 - insulin_iob_decay(t_min_prev, dia_hours=self.dia) if k > 0 else 0.0
-                    d_absorbed = max(0.0, frac_curr - frac_prev)
+                    t_min_curr = (k + 1) * 5.0
+                    t_min_prev = k * 5.0
+                    d_absorbed = max(0.0, insulin_iob_decay(t_min_prev, dia_hours=self.dia) - insulin_iob_decay(t_min_curr, dia_hours=self.dia))
                     total_bolus_drop_step += b_val * isf * d_absorbed
 
             # 2. Cumulative incremental effect from past carbs
             total_carbs_rise_step = 0.0
-            lookback_carbs = int(min(i, 36))  # 3 hours
+            lookback_carbs = int(min(i, 60))  # up to 5 hours
             for k in range(lookback_carbs):
                 past_idx = i - 1 - k
                 c_val = carbs_series[past_idx] if past_idx < len(carbs_series) else 0.0
                 if c_val > 0:
-                    t_min_curr = k * 5.0
-                    t_min_prev = (k - 1) * 5.0 if k > 0 else 0.0
-                    frac_curr = 1.0 - carb_cob_decay_custom(t_min_curr, speed="normal")
-                    frac_prev = 1.0 - carb_cob_decay_custom(t_min_prev, speed="normal") if k > 0 else 0.0
-                    d_absorbed = max(0.0, frac_curr - frac_prev)
+                    t_min_curr = (k + 1) * 5.0
+                    t_min_prev = k * 5.0
+                    d_absorbed = max(0.0, carb_cob_decay_custom(t_min_prev, speed="normal") - carb_cob_decay_custom(t_min_curr, speed="normal"))
                     total_carbs_rise_step += c_val * (isf / cr) * d_absorbed
+
+            # Continuous active simulated IOB and COB
+            active_iob = sum(bolus_series[k] * insulin_iob_decay((i - k) * 5.0, dia_hours=self.dia) for k in range(i + 1) if k < len(bolus_series) and bolus_series[k] > 0) + start_iob * insulin_iob_decay(i * 5.0, dia_hours=self.dia)
+            active_cob = sum(carbs_series[k] * carb_cob_decay_custom((i - k) * 5.0, speed="normal") for k in range(i + 1) if k < len(carbs_series) and carbs_series[k] > 0) + start_cob * carb_cob_decay_custom(i * 5.0, speed="normal")
 
             # 3. Temp basal delta effect vs scheduled profile (more insulin = drop in glucose)
             basal_val = basal_series[i - 1] if (i - 1) < len(basal_series) else basal_sched
@@ -439,7 +453,9 @@ class DigitalTwinModel:
                 "datetime": dt.strftime('%Y-%m-%dT%H:%M:%S'),
                 "simulated_sgv": sim_val,
                 "p10": round(max(35.0, sim_val - uncertainty), 1),
-                "p90": round(min(380.0, sim_val + uncertainty), 1)
+                "p90": round(min(380.0, sim_val + uncertainty), 1),
+                "simulated_iob": round(active_iob, 2),
+                "simulated_cob": round(active_cob, 1)
             })
 
         return res

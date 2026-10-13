@@ -6,41 +6,42 @@ from app.ml.features import prepare_ml_dataset, FEATURE_COLUMNS, TARGET_HORIZONS
 from app.ml.lightgbm_model import LightGBMPredictor
 from app.ml.deep_models import DeepPredictor
 
-from scipy.special import gammainc
+import math
 
 def insulin_iob_decay(t_minutes: float, dia_hours: float = 7.0, peak_minutes: float = 55.0) -> float:
     """
-    Standard physiological two-compartment subcutaneous insulin absorption and clearance model.
-    Returns fraction of insulin remaining active (unabsorbed/uncleared) at t_minutes, in [0.0, 1.0].
+    Standard OpenAPS/Loop physiological exponential subcutaneous insulin model.
+    Returns fraction of insulin remaining active (unabsorbed/uncleared) at t_minutes in [0.0, 1.0].
+    Strictly decays to 0.0 at dia_hours * 60 min.
     """
     if t_minutes <= 0:
         return 1.0
-    dia_minutes = dia_hours * 60.0
-    if t_minutes >= dia_minutes:
+    end = dia_hours * 60.0
+    if t_minutes >= end:
         return 0.0
-    
-    # Shape parameter k=2.5, scale theta selected to align mode at peak_minutes
-    k = 2.5
-    theta = peak_minutes / (k - 1.0)
-    absorbed = gammainc(k, t_minutes / theta)
-    return float(np.clip(1.0 - absorbed, 0.0, 1.0))
+
+    # Exponential time constant tau derived from peak_minutes and DIA
+    tau = peak_minutes * (1.0 - peak_minutes / end) / (1.0 - 2.0 * peak_minutes / end)
+    num = (1.0 + t_minutes / tau) * math.exp(-t_minutes / tau) - (1.0 + end / tau) * math.exp(-end / tau)
+    den = 1.0 - (1.0 + end / tau) * math.exp(-end / tau)
+    return float(np.clip(num / den, 0.0, 1.0))
 
 def carb_cob_decay(t_minutes: float, duration_minutes: float = 180.0, peak_minutes: float = 45.0) -> float:
     """
-    Standard carb absorption curve.
-    Returns fraction of carbs remaining to absorb at t_minutes.
+    Physiological continuous two-compartment gastrointestinal absorption model.
+    Returns fraction of carbs remaining to absorb (active COB fraction) at t_minutes in [0.0, 1.0].
+    Strictly continuous and decays smoothly to 0.0 at duration_minutes.
     """
     if t_minutes <= 0:
         return 1.0
     if t_minutes >= duration_minutes:
         return 0.0
-    
-    # Linear-quadratic absorption profile
-    if t_minutes <= peak_minutes:
-        absorbed_fraction = 0.5 * (t_minutes / peak_minutes) ** 2 * (peak_minutes / duration_minutes)
-    else:
-        absorbed_fraction = (t_minutes - 0.5 * peak_minutes) / duration_minutes
-    return float(np.clip(1.0 - absorbed_fraction, 0.0, 1.0))
+
+    # Rate of appearance peaks at peak_minutes with smooth decay to duration_minutes
+    tau = peak_minutes * (1.0 - peak_minutes / duration_minutes) / (1.0 - 2.0 * peak_minutes / duration_minutes)
+    num = (1.0 + t_minutes / tau) * math.exp(-t_minutes / tau) - (1.0 + duration_minutes / tau) * math.exp(-duration_minutes / tau)
+    den = 1.0 - (1.0 + duration_minutes / tau) * math.exp(-duration_minutes / tau)
+    return float(np.clip(num / den, 0.0, 1.0))
 
 def simulate_what_if_scenario(
     df_raw: pd.DataFrame,
@@ -148,7 +149,9 @@ def simulate_what_if_scenario(
             "baseline_sgv": round(float(base_val), 1),
             "delta_from_baseline": round(float(net_delta), 1),
             "iob_added": round(float(bolus_u * iob_remaining_frac), 2),
-            "cob_added": round(float(carbs_g * cob_remaining_frac), 1)
+            "cob_added": round(float(carbs_g * cob_remaining_frac), 1),
+            "total_iob": round(float(base_iob * insulin_iob_decay(m) + bolus_u * iob_remaining_frac), 2),
+            "total_cob": round(float(base_cob * carb_cob_decay(m) + carbs_g * cob_remaining_frac), 1)
         })
 
     # Summary analysis of scenario

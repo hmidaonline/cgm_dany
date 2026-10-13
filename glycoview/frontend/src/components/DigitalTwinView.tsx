@@ -30,6 +30,8 @@ export interface PlannedDayResult {
     max_sgv: number;
     total_bolus: number;
     total_carbs: number;
+    max_iob?: number;
+    max_cob?: number;
   };
   timeline: {
     datetime: string;
@@ -40,6 +42,8 @@ export interface PlannedDayResult {
     p90: number;
     bolus: number;
     carbs: number;
+    iob?: number;
+    cob?: number;
   }[];
 }
 
@@ -56,6 +60,12 @@ interface TimelinePoint {
   scenario_sim_sgv?: number;
   delta_from_baseline?: number;
   is_event_point?: boolean;
+  iob?: number;
+  cob?: number;
+  real_iob?: number;
+  real_cob?: number;
+  simulated_iob?: number;
+  simulated_cob?: number;
 }
 
 interface ReplayData {
@@ -496,6 +506,8 @@ export default function DigitalTwinView() {
     const simSeries = replayData.timeline.map((pt, i) => [times[i], pt.simulated_sgv]);
     const p10Series = replayData.timeline.map((pt, i) => [times[i], pt.p10]);
     const p90Series = replayData.timeline.map((pt, i) => [times[i], pt.p90]);
+    const simIobSeries = replayData.timeline.map((pt, i) => [times[i], pt.simulated_iob ?? 0]);
+    const simCobSeries = replayData.timeline.map((pt, i) => [times[i], pt.simulated_cob ?? 0]);
 
     // Build bolus markers
     const bolusMarkers = replayData.timeline
@@ -552,11 +564,17 @@ export default function DigitalTwinView() {
           const dtStr = new Date(params[0].value[0]).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
           let html = `<div style="font-weight:700;margin-bottom:8px;color:#e2e8f0;font-size:13px">${dtStr}</div>`;
           params.forEach((p: any) => {
-            if (p.value[1] !== null && p.value[1] !== undefined && p.seriesName !== 'Borne p10' && p.seriesName !== 'Bande d\'Incertitude') {
-              html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0">
-                <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block"></span>
-                <span style="color:#94a3b8;font-size:12px">${p.seriesName}:</span>
-                <span style="color:#f8fafc;font-weight:600;font-size:12px">${Math.round(p.value[1])} mg/dL</span>
+            if (p.value[1] !== null && p.value[1] !== undefined && p.seriesName !== 'Borne p10' && p.seriesName !== 'Bande d\'Incertitude' && p.seriesName !== 'Zone Cible') {
+              const isIob = p.seriesName.includes('IOB');
+              const isCob = p.seriesName.includes('COB');
+              const unit = isIob ? ' U' : isCob ? ' g' : ' mg/dL';
+              const valStr = isIob ? Number(p.value[1]).toFixed(2) : isCob ? Number(p.value[1]).toFixed(1) : Math.round(p.value[1]);
+              html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:3px 0">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block"></span>
+                  <span style="color:#94a3b8;font-size:12px">${p.seriesName}:</span>
+                </div>
+                <span style="color:#f8fafc;font-weight:600;font-size:12px">${valStr}${unit}</span>
               </div>`;
             }
           });
@@ -564,10 +582,10 @@ export default function DigitalTwinView() {
         }
       },
       legend: {
-        data: ['Glycémie Réelle', 'Simulation Jumeau'],
+        data: ['Glycémie Réelle', 'Simulation Jumeau', 'IOB Jumeau (U)', 'COB Jumeau (g)'],
         top: 0,
         textStyle: { color: '#94a3b8', fontSize: 11 },
-        itemGap: 20,
+        itemGap: 16,
         icon: 'roundRect',
         itemWidth: 14,
         itemHeight: 3,
@@ -597,14 +615,26 @@ export default function DigitalTwinView() {
         axisLabel: { color: '#64748b', fontSize: 10, formatter: '{HH}:{mm}' },
         splitLine: { show: true, lineStyle: { color: 'rgba(148, 163, 184, 0.06)' } },
       },
-      yAxis: {
-        type: 'value',
-        min: 40,
-        max: 320,
-        axisLine: { show: false },
-        axisLabel: { color: '#64748b', fontSize: 10 },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.06)', type: 'dashed' } },
-      },
+      yAxis: [
+        {
+          type: 'value',
+          min: 40,
+          max: 320,
+          axisLine: { show: false },
+          axisLabel: { color: '#64748b', fontSize: 10 },
+          splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.06)', type: 'dashed' } },
+        },
+        {
+          type: 'value',
+          name: 'IOB (U) / COB (g)',
+          position: 'right',
+          min: 0,
+          max: (value: any) => Math.max(8, Math.ceil(value.max * 1.15)),
+          axisLine: { show: false },
+          axisLabel: { color: '#94a3b8', fontSize: 10, formatter: '{value}' },
+          splitLine: { show: false },
+        }
+      ],
       series: [
         // Target Zone (70-180)
         {
@@ -692,6 +722,48 @@ export default function DigitalTwinView() {
             shadowBlur: 6,
           },
         },
+        // Simulated IOB line
+        {
+          name: 'IOB Jumeau (U)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: 0.35,
+          showSymbol: false,
+          data: simIobSeries,
+          itemStyle: { color: '#38bdf8' },
+          lineStyle: { width: 2, type: 'dashed' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(56, 189, 248, 0.15)' },
+                { offset: 1, color: 'rgba(56, 189, 248, 0.01)' }
+              ]
+            }
+          }
+        },
+        // Simulated COB line
+        {
+          name: 'COB Jumeau (g)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: 0.35,
+          showSymbol: false,
+          data: simCobSeries,
+          itemStyle: { color: '#fbbf24' },
+          lineStyle: { width: 2, type: 'dotted' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(251, 191, 36, 0.15)' },
+                { offset: 1, color: 'rgba(251, 191, 36, 0.01)' }
+              ]
+            }
+          }
+        }
       ]
     };
   }, [replayData]);
@@ -704,6 +776,8 @@ export default function DigitalTwinView() {
     const realSeries = scenarioResult.timeline.map((pt: any, i: number) => [times[i], pt.real_sgv]);
     const baseSimSeries = scenarioResult.timeline.map((pt: any, i: number) => [times[i], pt.baseline_sim_sgv]);
     const scenarioSimSeries = scenarioResult.timeline.map((pt: any, i: number) => [times[i], pt.scenario_sim_sgv]);
+    const iobSeries = scenarioResult.timeline.map((pt: any, i: number) => [times[i], pt.simulated_iob ?? 0]);
+    const cobSeries = scenarioResult.timeline.map((pt: any, i: number) => [times[i], pt.simulated_cob ?? 0]);
 
     // Event marker
     const eventPoint = scenarioResult.timeline.find((pt: any) => pt.is_event_point);
@@ -724,11 +798,17 @@ export default function DigitalTwinView() {
           const dtStr = new Date(params[0].value[0]).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
           let html = `<div style="font-weight:700;margin-bottom:8px;color:#e2e8f0;font-size:13px">⏱ ${dtStr}</div>`;
           params.forEach((p: any) => {
-            if (p.value[1] !== null && p.value[1] !== undefined) {
-              html += `<div style="display:flex;align-items:center;gap:6px;margin:3px 0">
-                <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block"></span>
-                <span style="color:#94a3b8;font-size:12px">${p.seriesName}:</span>
-                <span style="color:#f8fafc;font-weight:600;font-size:12px">${Math.round(p.value[1])} mg/dL</span>
+            if (p.value[1] !== null && p.value[1] !== undefined && p.seriesName !== 'Zone Cible') {
+              const isIob = p.seriesName.includes('IOB');
+              const isCob = p.seriesName.includes('COB');
+              const unit = isIob ? ' U' : isCob ? ' g' : ' mg/dL';
+              const valStr = isIob ? Number(p.value[1]).toFixed(2) : isCob ? Number(p.value[1]).toFixed(1) : Math.round(p.value[1]);
+              html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:3px 0">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block"></span>
+                  <span style="color:#94a3b8;font-size:12px">${p.seriesName}:</span>
+                </div>
+                <span style="color:#f8fafc;font-weight:600;font-size:12px">${valStr}${unit}</span>
               </div>`;
             }
           });
@@ -746,10 +826,10 @@ export default function DigitalTwinView() {
         }
       },
       legend: {
-        data: ['Glycémie Réelle', 'Simulation de Base', 'Scénario Modifié'],
+        data: ['Glycémie Réelle', 'Simulation de Base', 'Scénario Modifié', 'IOB Ajouté (U)', 'COB Ajouté (g)'],
         top: 0,
         textStyle: { color: '#94a3b8', fontSize: 11 },
-        itemGap: 20,
+        itemGap: 16,
         icon: 'roundRect',
         itemWidth: 14,
         itemHeight: 3,
@@ -775,14 +855,26 @@ export default function DigitalTwinView() {
         axisLabel: { color: '#64748b', fontSize: 10, formatter: '{HH}:{mm}' },
         splitLine: { show: true, lineStyle: { color: 'rgba(148, 163, 184, 0.06)' } },
       },
-      yAxis: {
-        type: 'value',
-        min: 40,
-        max: 320,
-        axisLine: { show: false },
-        axisLabel: { color: '#64748b', fontSize: 10 },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.06)', type: 'dashed' } },
-      },
+      yAxis: [
+        {
+          type: 'value',
+          min: 40,
+          max: 320,
+          axisLine: { show: false },
+          axisLabel: { color: '#64748b', fontSize: 10 },
+          splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.06)', type: 'dashed' } },
+        },
+        {
+          type: 'value',
+          name: 'IOB (U) / COB (g)',
+          position: 'right',
+          min: 0,
+          max: (value: any) => Math.max(6, Math.ceil(value.max * 1.15)),
+          axisLine: { show: false },
+          axisLabel: { color: '#94a3b8', fontSize: 10, formatter: '{value}' },
+          splitLine: { show: false },
+        }
+      ],
       series: [
         // Target Zone
         {
@@ -839,6 +931,48 @@ export default function DigitalTwinView() {
             }]
           } : undefined,
         },
+        // Simulated IOB line
+        {
+          name: 'IOB Ajouté (U)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: 0.35,
+          showSymbol: false,
+          data: iobSeries,
+          itemStyle: { color: '#38bdf8' },
+          lineStyle: { width: 2, type: 'dashed' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(56, 189, 248, 0.15)' },
+                { offset: 1, color: 'rgba(56, 189, 248, 0.01)' }
+              ]
+            }
+          }
+        },
+        // Simulated COB line
+        {
+          name: 'COB Ajouté (g)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: 0.35,
+          showSymbol: false,
+          data: cobSeries,
+          itemStyle: { color: '#fbbf24' },
+          lineStyle: { width: 2, type: 'dotted' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(251, 191, 36, 0.15)' },
+                { offset: 1, color: 'rgba(251, 191, 36, 0.01)' }
+              ]
+            }
+          }
+        }
       ]
     };
   }, [scenarioResult]);
@@ -851,6 +985,8 @@ export default function DigitalTwinView() {
     const simSeries = plannedResult.timeline.map((pt, i) => [times[i], pt.simulated_sgv]);
     const p10Series = plannedResult.timeline.map((pt, i) => [times[i], pt.p10]);
     const p90Series = plannedResult.timeline.map((pt, i) => [times[i], pt.p90]);
+    const iobSeries = plannedResult.timeline.map((pt, i) => [times[i], pt.iob ?? 0]);
+    const cobSeries = plannedResult.timeline.map((pt, i) => [times[i], pt.cob ?? 0]);
 
     // Bolus Markers
     const bolusMarkers = plannedResult.timeline
@@ -914,19 +1050,33 @@ export default function DigitalTwinView() {
               <span style="color:${color};font-weight:700;font-size:14px">${Math.round(sgvVal)} mg/dL</span>
             </div>`;
           }
+          const iobVal = params.find((p: any) => p.seriesName === 'IOB Actif (U)')?.value?.[1];
+          const cobVal = params.find((p: any) => p.seriesName === 'COB Actif (g)')?.value?.[1];
+          if (iobVal != null && iobVal > 0.02) {
+            html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0">
+              <span style="color:#38bdf8;font-size:12px">💉 IOB Actif:</span>
+              <span style="color:#38bdf8;font-weight:600;font-size:12px">${Number(iobVal).toFixed(2)} U</span>
+            </div>`;
+          }
+          if (cobVal != null && cobVal > 0.2) {
+            html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0">
+              <span style="color:#fbbf24;font-size:12px">🍞 COB Actif:</span>
+              <span style="color:#fbbf24;font-weight:600;font-size:12px">${Number(cobVal).toFixed(1)} g</span>
+            </div>`;
+          }
           return html;
         }
       },
       legend: {
-        data: ['Zone Cible (70-180)', 'Bande Incertitude (p10-p90)', 'Glycémie Simulée'],
+        data: ['Zone Cible (70-180)', 'Bande Incertitude (p10-p90)', 'Glycémie Simulée', 'IOB Actif (U)', 'COB Actif (g)'],
         top: 0,
         textStyle: { color: '#94a3b8', fontSize: 11 },
-        itemGap: 20,
+        itemGap: 16,
         icon: 'roundRect',
         itemWidth: 14,
         itemHeight: 3,
       },
-      grid: { left: '3%', right: '4%', bottom: '12%', top: '12%', containLabel: true },
+      grid: { left: '3%', right: '4%', bottom: '12%', top: '14%', containLabel: true },
       dataZoom: [{
         type: 'inside', start: 0, end: 100,
       }, {
@@ -945,14 +1095,26 @@ export default function DigitalTwinView() {
         axisLabel: { color: '#64748b', fontSize: 10, formatter: '{HH}:{mm}' },
         splitLine: { show: true, lineStyle: { color: 'rgba(148, 163, 184, 0.06)' } },
       },
-      yAxis: {
-        type: 'value',
-        min: 40,
-        max: 300,
-        axisLine: { show: false },
-        axisLabel: { color: '#64748b', fontSize: 10 },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.06)', type: 'dashed' } },
-      },
+      yAxis: [
+        {
+          type: 'value',
+          min: 40,
+          max: 300,
+          axisLine: { show: false },
+          axisLabel: { color: '#64748b', fontSize: 10 },
+          splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.06)', type: 'dashed' } },
+        },
+        {
+          type: 'value',
+          name: 'IOB (U) / COB (g)',
+          position: 'right',
+          min: 0,
+          max: (value: any) => Math.max(10, Math.ceil(value.max * 1.15)),
+          axisLine: { show: false },
+          axisLabel: { color: '#94a3b8', fontSize: 10, formatter: '{value}' },
+          splitLine: { show: false },
+        }
+      ],
       series: [
         {
           name: 'Zone Cible (70-180)',
@@ -1001,6 +1163,46 @@ export default function DigitalTwinView() {
             data: [...bolusMarkers, ...carbMarkers],
           },
         },
+        {
+          name: 'IOB Actif (U)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: 0.35,
+          showSymbol: false,
+          data: iobSeries,
+          itemStyle: { color: '#38bdf8' },
+          lineStyle: { width: 2, type: 'dashed' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(56, 189, 248, 0.20)' },
+                { offset: 1, color: 'rgba(56, 189, 248, 0.01)' }
+              ]
+            }
+          }
+        },
+        {
+          name: 'COB Actif (g)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: 0.35,
+          showSymbol: false,
+          data: cobSeries,
+          itemStyle: { color: '#fbbf24' },
+          lineStyle: { width: 2 },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(251, 191, 36, 0.18)' },
+                { offset: 1, color: 'rgba(251, 191, 36, 0.01)' }
+              ]
+            }
+          }
+        }
       ]
     };
   }, [plannedResult]);
@@ -1439,14 +1641,19 @@ export default function DigitalTwinView() {
                 </div>
               </div>
 
-              {/* Cumul Doses */}
+              {/* Cumul Doses & Pharmacocinétique */}
               <div style={{ ...glassCard, padding: '1.25rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Totaux Programmés</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#e2e8f0', marginTop: '0.3rem' }}>
-                  <span style={{ color: '#fbbf24' }}>{plannedResult.summary.total_carbs}g</span> Glucides
-                </div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#e2e8f0', marginTop: '0.1rem' }}>
-                  <span style={{ color: '#38bdf8' }}>{plannedResult.summary.total_bolus}U</span> Bolus
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Doses & Pics Actifs</div>
+                <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginTop: '0.35rem' }}>
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#fbbf24' }}>{plannedResult.summary.total_carbs}g</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Pic COB : <strong style={{ color: '#fbbf24' }}>{plannedResult.summary.max_cob ?? '--'}g</strong></div>
+                  </div>
+                  <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }}></div>
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#38bdf8' }}>{plannedResult.summary.total_bolus}U</div>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Pic IOB : <strong style={{ color: '#38bdf8' }}>{plannedResult.summary.max_iob ?? '--'}U</strong></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1454,12 +1661,13 @@ export default function DigitalTwinView() {
 
           {/* Graphique de la Courbe Glycémique Simulée sur 24h */}
           <div style={glassCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ fontSize: '0.95rem', fontWeight: '700', color: '#e2e8f0' }}>
-                Courbe Glycémique Simulée (00h00 - 23h55)
+                Courbe Glycémique Simulée (00h00 - 23h55) & Pharmacocinétique IOB/COB
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                Marqueurs : <span style={{ color: '#38bdf8', fontWeight: '700' }}>▲ Bolus</span> | <span style={{ color: '#fbbf24', fontWeight: '700' }}>● Repas</span>
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <span>Événements : <span style={{ color: '#38bdf8', fontWeight: '700' }}>▲ Bolus</span> | <span style={{ color: '#fbbf24', fontWeight: '700' }}>● Repas</span></span>
+                <span>Pharmacocinétique : <span style={{ color: '#38bdf8', fontWeight: '700' }}>--- IOB (U)</span> | <span style={{ color: '#fbbf24', fontWeight: '700' }}>━ COB (g)</span></span>
               </div>
             </div>
 
@@ -1508,7 +1716,7 @@ export default function DigitalTwinView() {
                 </span>
               </div>
               <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginTop: '0.35rem', marginLeft: '2.5rem' }}>
-                <strong style={{ color: '#cbd5e1' }}>Hôpital Militaire Oued Eddahab - Agadir</strong> | Investigateur Principal : <strong style={{ color: '#38bdf8' }}>Médecin Commandant Lhoussaine Abainou</strong>
+                <strong style={{ color: '#cbd5e1' }}>Hôpital Militaire Oued Eddahab - Agadir</strong> | Patient : <strong style={{ color: '#34d399' }}>Ahmed DANY</strong> | Investigateur Principal : <strong style={{ color: '#38bdf8' }}>Médecin Commandant Lhoussaine Abainou</strong>
               </div>
             </div>
 

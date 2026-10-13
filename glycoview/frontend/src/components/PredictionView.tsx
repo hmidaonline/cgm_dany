@@ -296,6 +296,8 @@ export default function PredictionView() {
 
     const baseTraj = simResult.baseline_trajectory.map(pt => [new Date(pt.datetime).getTime(), pt.sgv]);
     const simTraj = simResult.simulated_trajectory.map(pt => [new Date(pt.datetime).getTime(), pt.sgv]);
+    const iobTraj = simResult.simulated_trajectory.map(pt => [new Date(pt.datetime).getTime(), pt.iob_added]);
+    const cobTraj = simResult.simulated_trajectory.map(pt => [new Date(pt.datetime).getTime(), pt.cob_added]);
 
     return {
       backgroundColor: 'transparent',
@@ -307,27 +309,49 @@ export default function PredictionView() {
           let html = `<div style="font-weight:bold;margin-bottom:4px;color:#fff">${dateStr}</div>`;
           params.forEach((p: any) => {
             if (p.value[1] !== undefined) {
-              html += `<div style="color:${p.color}">● ${p.seriesName}: <strong>${p.value[1]} mg/dL</strong></div>`;
+              const unit = p.seriesName.includes('IOB') ? ' U' : p.seriesName.includes('COB') ? ' g' : ' mg/dL';
+              html += `<div style="color:${p.color}">● ${p.seriesName}: <strong>${p.value[1]}${unit}</strong></div>`;
             }
           });
           return html;
         }
       },
-      grid: { left: '3%', right: '4%', bottom: '10%', top: '12%', containLabel: true },
+      legend: {
+        data: ['Zone Cible (70-180)', 'Prédiction Standard (Sans Intervention)', 'Scénario Simulé (Avec Intervention)', 'IOB Ajouté (U)', 'COB Ajouté (g)'],
+        top: 0,
+        textStyle: { color: '#9ca3af', fontSize: 11 },
+        itemGap: 15,
+        icon: 'roundRect',
+        itemWidth: 12,
+        itemHeight: 3
+      },
+      grid: { left: '3%', right: '4%', bottom: '10%', top: '16%', containLabel: true },
       xAxis: {
         type: 'time',
         axisLine: { lineStyle: { color: '#4b5563' } },
         axisLabel: { color: '#9ca3af' },
         splitLine: { show: true, lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } }
       },
-      yAxis: {
-        type: 'value',
-        min: 40,
-        max: 320,
-        axisLine: { lineStyle: { color: '#4b5563' } },
-        axisLabel: { color: '#9ca3af' },
-        splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.08)' } }
-      },
+      yAxis: [
+        {
+          type: 'value',
+          min: 40,
+          max: 320,
+          axisLine: { lineStyle: { color: '#4b5563' } },
+          axisLabel: { color: '#9ca3af' },
+          splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.08)' } }
+        },
+        {
+          type: 'value',
+          name: 'IOB (U) / COB (g)',
+          position: 'right',
+          min: 0,
+          max: (value: any) => Math.max(5, Math.ceil(value.max * 1.15)),
+          axisLine: { show: false },
+          axisLabel: { color: '#9ca3af', fontSize: 10 },
+          splitLine: { show: false }
+        }
+      ],
       series: [
         {
           name: 'Zone Cible (70-180)',
@@ -356,6 +380,46 @@ export default function PredictionView() {
           data: simTraj,
           itemStyle: { color: '#10b981' },
           lineStyle: { width: 3.5 }
+        },
+        {
+          name: 'IOB Ajouté (U)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: true,
+          showSymbol: false,
+          data: iobTraj,
+          itemStyle: { color: '#38bdf8' },
+          lineStyle: { width: 2, type: 'dashed' },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(56, 189, 248, 0.20)' },
+                { offset: 1, color: 'rgba(56, 189, 248, 0.01)' }
+              ]
+            }
+          }
+        },
+        {
+          name: 'COB Ajouté (g)',
+          type: 'line',
+          yAxisIndex: 1,
+          smooth: true,
+          showSymbol: false,
+          data: cobTraj,
+          itemStyle: { color: '#fbbf24' },
+          lineStyle: { width: 2 },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(251, 191, 36, 0.18)' },
+                { offset: 1, color: 'rgba(251, 191, 36, 0.01)' }
+              ]
+            }
+          }
         }
       ]
     };
