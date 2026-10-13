@@ -7,10 +7,10 @@ interface LoginViewProps {
 }
 
 export default function LoginView({ onLoginSuccess }: LoginViewProps) {
-  const [username, setUsername] = useState('dany');
-  const [password, setPassword] = useState('glycoview2026');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -194,9 +194,10 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
               <input
                 type="text"
                 required
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Ex: admin ou dany"
+                placeholder="Identifiant ou email"
                 style={{
                   width: '100%',
                   background: 'rgba(15, 23, 42, 0.6)',
@@ -239,9 +240,10 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
+                placeholder="Mot de passe"
                 style={{
                   width: '100%',
                   background: 'rgba(15, 23, 42, 0.6)',
