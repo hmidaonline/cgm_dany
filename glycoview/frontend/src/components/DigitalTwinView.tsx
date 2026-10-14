@@ -1869,8 +1869,8 @@ export default function DigitalTwinView() {
                       Comparaison chronologique stricte avec purge de 2h (sans data leakage futur)
                     </div>
                   </div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                    Échantillons de test : {protocolData.sample_counts?.test} points
+                  <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: '600' }}>
+                    Échantillons évalués : {protocolData.sample_counts?.test} points (totalité des données)
                   </span>
                 </div>
 
