@@ -26,10 +26,24 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         body: JSON.stringify({ username, password })
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail || "Échec de l'authentification. Identifiants incorrects.");
+        let errorMsg = `Erreur ${res.status}`;
+        try {
+          const errData = await res.json();
+          errorMsg = errData.detail || errorMsg;
+        } catch {
+          if (res.status === 502) {
+            errorMsg = "Erreur 502 (Bad Gateway) : Le serveur backend FastAPI n'est pas démarré ou n'est pas joignable par le proxy distant.";
+          } else if (res.status === 504) {
+            errorMsg = "Erreur 504 (Gateway Timeout) : Le serveur backend ne répond pas à temps.";
+          } else {
+            errorMsg = `Erreur réseau ${res.status} : Réponse invalide du serveur.`;
+          }
+        }
+        throw new Error(errorMsg);
       }
+
+      const data = await res.json();
 
       if (rememberMe) {
         localStorage.setItem('glycoview_token', data.token);
