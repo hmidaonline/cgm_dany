@@ -4,7 +4,7 @@ import {
   ShieldAlert, Zap, Activity,
   Play, RefreshCw, BarChart2, CheckCircle2,
   Calendar, Layers, Sliders, Dna,
-  Lock, TrendingUp, HeartHandshake
+  Lock, TrendingUp, HeartHandshake, AlertCircle
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
@@ -25,6 +25,9 @@ export default function RLAgentView() {
   // --- Sub-view C: Scientific Identity Benchmarks State ---
   const [benchmarks, setBenchmarks] = useState<any>(null);
 
+  const [simError, setSimError] = useState<string | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
+
   // Load benchmarks on mount
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/rl/benchmarks`)
@@ -40,6 +43,7 @@ export default function RLAgentView() {
 
   const runCounterfactualSim = async (scenario: string, seed: number) => {
     setSimLoading(true);
+    setSimError(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/rl/counterfactual-sim`, {
         method: 'POST',
@@ -47,9 +51,13 @@ export default function RLAgentView() {
         body: JSON.stringify({ scenario_type: scenario, seed })
       });
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || `Erreur serveur ${res.status}`);
+      }
       setSimResults(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error running counterfactual sim:", err);
+      setSimError(err.message || "Erreur de simulation");
     } finally {
       setSimLoading(false);
     }
@@ -57,6 +65,7 @@ export default function RLAgentView() {
 
   const runShadowAudit = async (date: string) => {
     setAuditLoading(true);
+    setAuditError(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/rl/shadow-audit`, {
         method: 'POST',
@@ -64,9 +73,13 @@ export default function RLAgentView() {
         body: JSON.stringify({ date })
       });
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || `Erreur serveur ${res.status}`);
+      }
       setAuditResults(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error running shadow audit:", err);
+      setAuditError(err.message || "Erreur d'audit");
     } finally {
       setAuditLoading(false);
     }
@@ -561,6 +574,24 @@ export default function RLAgentView() {
             </div>
           </div>
 
+          {/* Simulation Error Alert if any */}
+          {simError && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '10px',
+              padding: '0.85rem 1.25rem',
+              color: '#fca5a5',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <AlertCircle style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+              <span>{simError}</span>
+            </div>
+          )}
+
           {/* Metric Comparison Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
             {simResults?.comparison_table?.map((c: any) => {
@@ -724,6 +755,24 @@ export default function RLAgentView() {
               Lancer l'Audit en Mode Ombre
             </button>
           </div>
+
+          {/* Audit Error Alert if any */}
+          {auditError && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '10px',
+              padding: '0.85rem 1.25rem',
+              color: '#fca5a5',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <AlertCircle style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+              <span>{auditError}</span>
+            </div>
+          )}
 
           {/* Audit Summary Stats */}
           {auditResults?.summary && (
