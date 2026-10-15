@@ -5,16 +5,34 @@ import pandas as pd
 from typing import Dict, Any, List, Optional, Tuple
 import datetime
 
-# Stable Baselines3
-from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize
+# Optional RL dependencies (avoids breaking production backend if torch/gymnasium are not installed)
+try:
+    from stable_baselines3 import PPO
+    from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize
+    from app.ml.rl.env.glucose_env import GlycoTwinEnv
+    from app.ml.rl.env.residual_env import ResidualGlycoTwinEnv
+    from app.ml.rl.baselines.controllers import OpenLoopBolusWizardPolicy, PIDControllerPolicy, Oref0HeuristicPolicy
+    from app.ml.rl.evaluate_baselines import compute_episode_metrics
+    from app.ml.rl.env.observations import ObservationBuilder
+    from app.ml.rl.env.safety_shield import SafetyShield
+    RL_AVAILABLE = True
+    RL_IMPORT_ERROR = None
+except ImportError as err:
+    RL_AVAILABLE = False
+    RL_IMPORT_ERROR = str(err)
+    PPO = None
+    DummyVecEnv = None
+    VecFrameStack = None
+    VecNormalize = None
+    GlycoTwinEnv = None
+    ResidualGlycoTwinEnv = None
+    OpenLoopBolusWizardPolicy = None
+    PIDControllerPolicy = None
+    Oref0HeuristicPolicy = None
+    compute_episode_metrics = None
+    ObservationBuilder = None
+    SafetyShield = None
 
-from app.ml.rl.env.glucose_env import GlycoTwinEnv
-from app.ml.rl.env.residual_env import ResidualGlycoTwinEnv
-from app.ml.rl.baselines.controllers import OpenLoopBolusWizardPolicy, PIDControllerPolicy, Oref0HeuristicPolicy
-from app.ml.rl.evaluate_baselines import compute_episode_metrics
-from app.ml.rl.env.observations import ObservationBuilder
-from app.ml.rl.env.safety_shield import SafetyShield
 from app.data.pipeline import build_features
 
 class RLInferenceService:
@@ -43,6 +61,11 @@ class RLInferenceService:
         return cls._instance
 
     def _load_model(self):
+        if not RL_AVAILABLE:
+            print(f"[RLInferenceService] Info: Dépendances RL non installées ({RL_IMPORT_ERROR}). Démarrage en mode standard.")
+            self.is_loaded = False
+            return
+
         try:
             if os.path.exists(self.model_path):
                 # Temporary dummy env to load VecNormalize
@@ -263,7 +286,8 @@ class RLInferenceService:
         }
         actual_scenario = scenario_mapping.get(scenario_type, "standard_day")
 
-        # 1. Run Baselines
+        if not RL_AVAILABLE:
+            raise RuntimeError(f"Le module de simulation n'est pas disponible sur ce serveur ({RL_IMPORT_ERROR}).")
         baselines_configs = [
             {"id": "open_loop", "label": "OpenLoop (Bolus Wizard)", "policy": OpenLoopBolusWizardPolicy(), "use_shield": True},
             {"id": "pid_shield", "label": "PID (+Shield)", "policy": PIDControllerPolicy(), "use_shield": True},
