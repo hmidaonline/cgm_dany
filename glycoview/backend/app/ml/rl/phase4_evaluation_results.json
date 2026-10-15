@@ -1,0 +1,1067 @@
+{
+  "banc_a_residual_results": {
+    "Residual_PPO_WithShield": {
+      "mean_g": {
+        "mean": 130.14,
+        "std": 10.4,
+        "median": 128.89,
+        "iqr_low": 122.56,
+        "iqr_high": 137.04,
+        "cvar_p5": 115.49,
+        "formatted_mean_sd": "130.1 \u00b1 10.4",
+        "formatted_median_iqr": "128.9 [122.6 - 137.0]",
+        "formatted_p5": "115.5"
+      },
+      "cv_pct": {
+        "mean": 19.35,
+        "std": 5.58,
+        "median": 18.17,
+        "iqr_low": 15.07,
+        "iqr_high": 22.59,
+        "cvar_p5": 12.38,
+        "formatted_mean_sd": "19.4 \u00b1 5.6",
+        "formatted_median_iqr": "18.2 [15.1 - 22.6]",
+        "formatted_p5": "12.4"
+      },
+      "tir_70_180": {
+        "mean": 93.35,
+        "std": 7.94,
+        "median": 96.89,
+        "iqr_low": 88.49,
+        "iqr_high": 100.0,
+        "cvar_p5": 77.82,
+        "formatted_mean_sd": "93.3 \u00b1 7.9",
+        "formatted_median_iqr": "96.9 [88.5 - 100.0]",
+        "formatted_p5": "77.8"
+      },
+      "tight_tir_70_140": {
+        "mean": 71.52,
+        "std": 13.49,
+        "median": 71.11,
+        "iqr_low": 59.52,
+        "iqr_high": 83.39,
+        "cvar_p5": 51.56,
+        "formatted_mean_sd": "71.5 \u00b1 13.5",
+        "formatted_median_iqr": "71.1 [59.5 - 83.4]",
+        "formatted_p5": "51.6"
+      },
+      "tbr_under_70": {
+        "mean": 0.0,
+        "std": 0.02,
+        "median": 0.0,
+        "iqr_low": 0.0,
+        "iqr_high": 0.0,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "0.0 \u00b1 0.0",
+        "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+        "formatted_p5": "0.0"
+      },
+      "tbr_under_54": {
+        "mean": 0.0,
+        "std": 0.0,
+        "median": 0.0,
+        "iqr_low": 0.0,
+        "iqr_high": 0.0,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "0.0 \u00b1 0.0",
+        "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+        "formatted_p5": "0.0"
+      },
+      "tar_over_180": {
+        "mean": 6.65,
+        "std": 7.93,
+        "median": 3.11,
+        "iqr_low": 0.0,
+        "iqr_high": 11.51,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "6.7 \u00b1 7.9",
+        "formatted_median_iqr": "3.1 [0.0 - 11.5]",
+        "formatted_p5": "0.0"
+      },
+      "tar_over_250": {
+        "mean": 0.48,
+        "std": 1.54,
+        "median": 0.0,
+        "iqr_low": 0.0,
+        "iqr_high": 0.0,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "0.5 \u00b1 1.5",
+        "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+        "formatted_p5": "0.0"
+      },
+      "lbgi": {
+        "mean": 0.09,
+        "std": 0.07,
+        "median": 0.06,
+        "iqr_low": 0.05,
+        "iqr_high": 0.1,
+        "cvar_p5": 0.04,
+        "formatted_mean_sd": "0.1 \u00b1 0.1",
+        "formatted_median_iqr": "0.1 [0.1 - 0.1]",
+        "formatted_p5": "0.0"
+      },
+      "hbgi": {
+        "mean": 1.89,
+        "std": 1.37,
+        "median": 1.52,
+        "iqr_low": 0.81,
+        "iqr_high": 2.67,
+        "cvar_p5": 0.43,
+        "formatted_mean_sd": "1.9 \u00b1 1.4",
+        "formatted_median_iqr": "1.5 [0.8 - 2.7]",
+        "formatted_p5": "0.4"
+      },
+      "bgri": {
+        "mean": 1.97,
+        "std": 1.35,
+        "median": 1.61,
+        "iqr_low": 0.95,
+        "iqr_high": 2.76,
+        "cvar_p5": 0.57,
+        "formatted_mean_sd": "2.0 \u00b1 1.4",
+        "formatted_median_iqr": "1.6 [0.9 - 2.8]",
+        "formatted_p5": "0.6"
+      },
+      "cumulative_reward": {
+        "mean": 671.79,
+        "std": 71.63,
+        "median": 688.68,
+        "iqr_low": 623.51,
+        "iqr_high": 732.12,
+        "cvar_p5": 539.65,
+        "formatted_mean_sd": "671.8 \u00b1 71.6",
+        "formatted_median_iqr": "688.7 [623.5 - 732.1]",
+        "formatted_p5": "539.6"
+      },
+      "shield_activation_pct": {
+        "mean": 13.81,
+        "std": 4.91,
+        "median": 12.85,
+        "iqr_low": 10.42,
+        "iqr_high": 17.01,
+        "cvar_p5": 7.27,
+        "formatted_mean_sd": "13.8 \u00b1 4.9",
+        "formatted_median_iqr": "12.8 [10.4 - 17.0]",
+        "formatted_p5": "7.3"
+      }
+    },
+    "Residual_SAC_WithShield": {
+      "mean_g": {
+        "mean": 131.5,
+        "std": 11.35,
+        "median": 130.08,
+        "iqr_low": 122.96,
+        "iqr_high": 138.56,
+        "cvar_p5": 116.0,
+        "formatted_mean_sd": "131.5 \u00b1 11.4",
+        "formatted_median_iqr": "130.1 [123.0 - 138.6]",
+        "formatted_p5": "116.0"
+      },
+      "cv_pct": {
+        "mean": 18.33,
+        "std": 5.89,
+        "median": 16.83,
+        "iqr_low": 13.92,
+        "iqr_high": 21.67,
+        "cvar_p5": 11.1,
+        "formatted_mean_sd": "18.3 \u00b1 5.9",
+        "formatted_median_iqr": "16.8 [13.9 - 21.7]",
+        "formatted_p5": "11.1"
+      },
+      "tir_70_180": {
+        "mean": 93.2,
+        "std": 8.51,
+        "median": 96.89,
+        "iqr_low": 89.1,
+        "iqr_high": 100.0,
+        "cvar_p5": 76.07,
+        "formatted_mean_sd": "93.2 \u00b1 8.5",
+        "formatted_median_iqr": "96.9 [89.1 - 100.0]",
+        "formatted_p5": "76.1"
+      },
+      "tight_tir_70_140": {
+        "mean": 71.22,
+        "std": 14.4,
+        "median": 71.28,
+        "iqr_low": 58.82,
+        "iqr_high": 84.26,
+        "cvar_p5": 50.85,
+        "formatted_mean_sd": "71.2 \u00b1 14.4",
+        "formatted_median_iqr": "71.3 [58.8 - 84.3]",
+        "formatted_p5": "50.8"
+      },
+      "tbr_under_70": {
+        "mean": 0.0,
+        "std": 0.05,
+        "median": 0.0,
+        "iqr_low": 0.0,
+        "iqr_high": 0.0,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "0.0 \u00b1 0.0",
+        "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+        "formatted_p5": "0.0"
+      },
+      "tbr_under_54": {
+        "mean": 0.0,
+        "std": 0.0,
+        "median": 0.0,
+        "iqr_low": 0.0,
+        "iqr_high": 0.0,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "0.0 \u00b1 0.0",
+        "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+        "formatted_p5": "0.0"
+      },
+      "tar_over_180": {
+        "mean": 6.8,
+        "std": 8.5,
+        "median": 3.11,
+        "iqr_low": 0.0,
+        "iqr_high": 10.9,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "6.8 \u00b1 8.5",
+        "formatted_median_iqr": "3.1 [0.0 - 10.9]",
+        "formatted_p5": "0.0"
+      },
+      "tar_over_250": {
+        "mean": 0.56,
+        "std": 1.77,
+        "median": 0.0,
+        "iqr_low": 0.0,
+        "iqr_high": 0.0,
+        "cvar_p5": 0.0,
+        "formatted_mean_sd": "0.6 \u00b1 1.8",
+        "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+        "formatted_p5": "0.0"
+      },
+      "lbgi": {
+        "mean": 0.06,
+        "std": 0.06,
+        "median": 0.04,
+        "iqr_low": 0.02,
+        "iqr_high": 0.08,
+        "cvar_p5": 0.01,
+        "formatted_mean_sd": "0.1 \u00b1 0.1",
+        "formatted_median_iqr": "0.0 [0.0 - 0.1]",
+        "formatted_p5": "0.0"
+      },
+      "hbgi": {
+        "mean": 1.94,
+        "std": 1.53,
+        "median": 1.52,
+        "iqr_low": 0.8,
+        "iqr_high": 2.66,
+        "cvar_p5": 0.38,
+        "formatted_mean_sd": "1.9 \u00b1 1.5",
+        "formatted_median_iqr": "1.5 [0.8 - 2.7]",
+        "formatted_p5": "0.4"
+      },
+      "bgri": {
+        "mean": 2.0,
+        "std": 1.52,
+        "median": 1.54,
+        "iqr_low": 0.88,
+        "iqr_high": 2.69,
+        "cvar_p5": 0.51,
+        "formatted_mean_sd": "2.0 \u00b1 1.5",
+        "formatted_median_iqr": "1.5 [0.9 - 2.7]",
+        "formatted_p5": "0.5"
+      },
+      "cumulative_reward": {
+        "mean": 670.48,
+        "std": 79.11,
+        "median": 691.06,
+        "iqr_low": 624.41,
+        "iqr_high": 732.63,
+        "cvar_p5": 524.12,
+        "formatted_mean_sd": "670.5 \u00b1 79.1",
+        "formatted_median_iqr": "691.1 [624.4 - 732.6]",
+        "formatted_p5": "524.1"
+      },
+      "shield_activation_pct": {
+        "mean": 12.73,
+        "std": 5.11,
+        "median": 11.81,
+        "iqr_low": 9.03,
+        "iqr_high": 15.97,
+        "cvar_p5": 5.89,
+        "formatted_mean_sd": "12.7 \u00b1 5.1",
+        "formatted_median_iqr": "11.8 [9.0 - 16.0]",
+        "formatted_p5": "5.9"
+      }
+    }
+  },
+  "wilcoxon_vs_oref0": {
+    "Residual_PPO_vs_Oref0": {
+      "tir_70_180": {
+        "mean_diff": 0.03,
+        "statistic": 2848.0,
+        "p_value": 0.7701263173700684,
+        "significant": false
+      },
+      "tight_tir_70_140": {
+        "mean_diff": 1.8,
+        "statistic": 1001.0,
+        "p_value": 1.8917724400573557e-25,
+        "significant": true
+      },
+      "tbr_under_70": {
+        "mean_diff": 0.0,
+        "statistic": 0.0,
+        "p_value": 0.31731050786291415,
+        "significant": false
+      },
+      "bgri": {
+        "mean_diff": -0.03,
+        "statistic": 6153.5,
+        "p_value": 3.649933079334211e-05,
+        "significant": true
+      },
+      "cumulative_reward": {
+        "mean_diff": 3.7,
+        "statistic": 4288.0,
+        "p_value": 2.056169201663509e-12,
+        "significant": true
+      }
+    },
+    "Residual_SAC_vs_Oref0": {
+      "tir_70_180": {
+        "mean_diff": -0.12,
+        "statistic": 3253.5,
+        "p_value": 0.5897270495264257,
+        "significant": false
+      },
+      "tight_tir_70_140": {
+        "mean_diff": 1.5,
+        "statistic": 2516.0,
+        "p_value": 4.209079836859908e-17,
+        "significant": true
+      },
+      "tbr_under_70": {
+        "mean_diff": 0.0,
+        "statistic": 0.0,
+        "p_value": 0.31731050786291415,
+        "significant": false
+      },
+      "bgri": {
+        "mean_diff": -0.01,
+        "statistic": 6882.5,
+        "p_value": 0.00023648909994290152,
+        "significant": true
+      },
+      "cumulative_reward": {
+        "mean_diff": 2.4,
+        "statistic": 6207.0,
+        "p_value": 2.7439048352069784e-06,
+        "significant": true
+      }
+    }
+  },
+  "banc_b_stress_tests": {
+    "forgotten_bolus": {
+      "label": "1. Bolus Oubli\u00e9 (Repas 60g)",
+      "controllers": {
+        "Residual_PPO_WithShield": {
+          "tir_70_180": {
+            "mean": 72.83,
+            "std": 19.83,
+            "median": 75.78,
+            "iqr_low": 60.99,
+            "iqr_high": 87.2,
+            "cvar_p5": 35.1,
+            "formatted_mean_sd": "72.8 \u00b1 19.8",
+            "formatted_median_iqr": "75.8 [61.0 - 87.2]",
+            "formatted_p5": "35.1"
+          },
+          "tbr_under_70": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 27.17,
+            "std": 19.83,
+            "median": 24.22,
+            "iqr_low": 12.8,
+            "iqr_high": 39.01,
+            "cvar_p5": 2.08,
+            "formatted_mean_sd": "27.2 \u00b1 19.8",
+            "formatted_median_iqr": "24.2 [12.8 - 39.0]",
+            "formatted_p5": "2.1"
+          },
+          "bgri": {
+            "mean": 8.36,
+            "std": 7.6,
+            "median": 5.58,
+            "iqr_low": 2.66,
+            "iqr_high": 11.39,
+            "cvar_p5": 0.95,
+            "formatted_mean_sd": "8.4 \u00b1 7.6",
+            "formatted_median_iqr": "5.6 [2.7 - 11.4]",
+            "formatted_p5": "0.9"
+          },
+          "cumulative_reward": {
+            "mean": 405.29,
+            "std": 312.4,
+            "median": 498.73,
+            "iqr_low": 283.97,
+            "iqr_high": 639.88,
+            "cvar_p5": -221.14,
+            "formatted_mean_sd": "405.3 \u00b1 312.4",
+            "formatted_median_iqr": "498.7 [284.0 - 639.9]",
+            "formatted_p5": "-221.1"
+          }
+        },
+        "Residual_SAC_WithShield": {
+          "tir_70_180": {
+            "mean": 64.49,
+            "std": 26.57,
+            "median": 72.32,
+            "iqr_low": 39.27,
+            "iqr_high": 86.25,
+            "cvar_p5": 26.8,
+            "formatted_mean_sd": "64.5 \u00b1 26.6",
+            "formatted_median_iqr": "72.3 [39.3 - 86.2]",
+            "formatted_p5": "26.8"
+          },
+          "tbr_under_70": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 35.51,
+            "std": 26.57,
+            "median": 27.68,
+            "iqr_low": 13.75,
+            "iqr_high": 60.73,
+            "cvar_p5": 1.85,
+            "formatted_mean_sd": "35.5 \u00b1 26.6",
+            "formatted_median_iqr": "27.7 [13.8 - 60.7]",
+            "formatted_p5": "1.9"
+          },
+          "bgri": {
+            "mean": 11.73,
+            "std": 11.07,
+            "median": 6.87,
+            "iqr_low": 2.93,
+            "iqr_high": 19.01,
+            "cvar_p5": 0.9,
+            "formatted_mean_sd": "11.7 \u00b1 11.1",
+            "formatted_median_iqr": "6.9 [2.9 - 19.0]",
+            "formatted_p5": "0.9"
+          },
+          "cumulative_reward": {
+            "mean": 268.3,
+            "std": 449.05,
+            "median": 456.43,
+            "iqr_low": -63.73,
+            "iqr_high": 628.0,
+            "cvar_p5": -540.93,
+            "formatted_mean_sd": "268.3 \u00b1 449.0",
+            "formatted_median_iqr": "456.4 [-63.7 - 628.0]",
+            "formatted_p5": "-540.9"
+          }
+        }
+      }
+    },
+    "high_fat_meal": {
+      "label": "2. Repas Gras / Absorption Retard\u00e9e (T_max=110m)",
+      "controllers": {
+        "Residual_PPO_WithShield": {
+          "tir_70_180": {
+            "mean": 94.38,
+            "std": 7.55,
+            "median": 96.37,
+            "iqr_low": 92.82,
+            "iqr_high": 100.0,
+            "cvar_p5": 74.95,
+            "formatted_mean_sd": "94.4 \u00b1 7.6",
+            "formatted_median_iqr": "96.4 [92.8 - 100.0]",
+            "formatted_p5": "74.9"
+          },
+          "tbr_under_70": {
+            "mean": 0.41,
+            "std": 1.19,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.4 \u00b1 1.2",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.04,
+            "std": 0.26,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.3",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 5.21,
+            "std": 7.72,
+            "median": 0.69,
+            "iqr_low": 0.0,
+            "iqr_high": 7.18,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "5.2 \u00b1 7.7",
+            "formatted_median_iqr": "0.7 [0.0 - 7.2]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 1.64,
+            "std": 1.75,
+            "median": 1.04,
+            "iqr_low": 0.62,
+            "iqr_high": 1.65,
+            "cvar_p5": 0.42,
+            "formatted_mean_sd": "1.6 \u00b1 1.8",
+            "formatted_median_iqr": "1.0 [0.6 - 1.6]",
+            "formatted_p5": "0.4"
+          },
+          "cumulative_reward": {
+            "mean": 684.98,
+            "std": 115.49,
+            "median": 724.0,
+            "iqr_low": 684.65,
+            "iqr_high": 751.92,
+            "cvar_p5": 470.83,
+            "formatted_mean_sd": "685.0 \u00b1 115.5",
+            "formatted_median_iqr": "724.0 [684.6 - 751.9]",
+            "formatted_p5": "470.8"
+          }
+        },
+        "Residual_SAC_WithShield": {
+          "tir_70_180": {
+            "mean": 93.67,
+            "std": 8.88,
+            "median": 97.23,
+            "iqr_low": 92.56,
+            "iqr_high": 100.0,
+            "cvar_p5": 70.48,
+            "formatted_mean_sd": "93.7 \u00b1 8.9",
+            "formatted_median_iqr": "97.2 [92.6 - 100.0]",
+            "formatted_p5": "70.5"
+          },
+          "tbr_under_70": {
+            "mean": 0.3,
+            "std": 0.95,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.3 \u00b1 1.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.01,
+            "std": 0.05,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.1",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 6.03,
+            "std": 9.02,
+            "median": 1.38,
+            "iqr_low": 0.0,
+            "iqr_high": 7.44,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "6.0 \u00b1 9.0",
+            "formatted_median_iqr": "1.4 [0.0 - 7.4]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 1.79,
+            "std": 2.12,
+            "median": 0.94,
+            "iqr_low": 0.62,
+            "iqr_high": 1.72,
+            "cvar_p5": 0.36,
+            "formatted_mean_sd": "1.8 \u00b1 2.1",
+            "formatted_median_iqr": "0.9 [0.6 - 1.7]",
+            "formatted_p5": "0.4"
+          },
+          "cumulative_reward": {
+            "mean": 678.57,
+            "std": 121.63,
+            "median": 727.77,
+            "iqr_low": 676.75,
+            "iqr_high": 753.85,
+            "cvar_p5": 433.34,
+            "formatted_mean_sd": "678.6 \u00b1 121.6",
+            "formatted_median_iqr": "727.8 [676.7 - 753.9]",
+            "formatted_p5": "433.3"
+          }
+        }
+      }
+    },
+    "exercise": {
+      "label": "3. Exercice Physique (+50% ISF / Captation GLUT4)",
+      "controllers": {
+        "Residual_PPO_WithShield": {
+          "tir_70_180": {
+            "mean": 94.14,
+            "std": 8.11,
+            "median": 97.23,
+            "iqr_low": 90.22,
+            "iqr_high": 100.0,
+            "cvar_p5": 81.09,
+            "formatted_mean_sd": "94.1 \u00b1 8.1",
+            "formatted_median_iqr": "97.2 [90.2 - 100.0]",
+            "formatted_p5": "81.1"
+          },
+          "tbr_under_70": {
+            "mean": 0.28,
+            "std": 1.06,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.3 \u00b1 1.1",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 5.58,
+            "std": 8.23,
+            "median": 1.73,
+            "iqr_low": 0.0,
+            "iqr_high": 9.78,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "5.6 \u00b1 8.2",
+            "formatted_median_iqr": "1.7 [0.0 - 9.8]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 1.69,
+            "std": 1.76,
+            "median": 1.25,
+            "iqr_low": 0.73,
+            "iqr_high": 2.1,
+            "cvar_p5": 0.38,
+            "formatted_mean_sd": "1.7 \u00b1 1.8",
+            "formatted_median_iqr": "1.2 [0.7 - 2.1]",
+            "formatted_p5": "0.4"
+          },
+          "cumulative_reward": {
+            "mean": 693.34,
+            "std": 82.38,
+            "median": 716.38,
+            "iqr_low": 669.76,
+            "iqr_high": 744.58,
+            "cvar_p5": 590.72,
+            "formatted_mean_sd": "693.3 \u00b1 82.4",
+            "formatted_median_iqr": "716.4 [669.8 - 744.6]",
+            "formatted_p5": "590.7"
+          }
+        },
+        "Residual_SAC_WithShield": {
+          "tir_70_180": {
+            "mean": 93.85,
+            "std": 10.06,
+            "median": 98.27,
+            "iqr_low": 90.74,
+            "iqr_high": 100.0,
+            "cvar_p5": 79.74,
+            "formatted_mean_sd": "93.9 \u00b1 10.1",
+            "formatted_median_iqr": "98.3 [90.7 - 100.0]",
+            "formatted_p5": "79.7"
+          },
+          "tbr_under_70": {
+            "mean": 0.13,
+            "std": 0.67,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.1 \u00b1 0.7",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 6.01,
+            "std": 10.12,
+            "median": 1.56,
+            "iqr_low": 0.0,
+            "iqr_high": 9.26,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "6.0 \u00b1 10.1",
+            "formatted_median_iqr": "1.6 [0.0 - 9.3]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 1.85,
+            "std": 2.72,
+            "median": 1.17,
+            "iqr_low": 0.69,
+            "iqr_high": 2.2,
+            "cvar_p5": 0.33,
+            "formatted_mean_sd": "1.8 \u00b1 2.7",
+            "formatted_median_iqr": "1.2 [0.7 - 2.2]",
+            "formatted_p5": "0.3"
+          },
+          "cumulative_reward": {
+            "mean": 686.82,
+            "std": 119.4,
+            "median": 716.9,
+            "iqr_low": 658.47,
+            "iqr_high": 746.98,
+            "cvar_p5": 583.32,
+            "formatted_mean_sd": "686.8 \u00b1 119.4",
+            "formatted_median_iqr": "716.9 [658.5 - 747.0]",
+            "formatted_p5": "583.3"
+          }
+        }
+      }
+    },
+    "carb_undercounting": {
+      "label": "4. Sous-estimation Glucides (-40%)",
+      "controllers": {
+        "Residual_PPO_WithShield": {
+          "tir_70_180": {
+            "mean": 55.76,
+            "std": 29.64,
+            "median": 58.82,
+            "iqr_low": 27.94,
+            "iqr_high": 82.44,
+            "cvar_p5": 12.27,
+            "formatted_mean_sd": "55.8 \u00b1 29.6",
+            "formatted_median_iqr": "58.8 [27.9 - 82.4]",
+            "formatted_p5": "12.3"
+          },
+          "tbr_under_70": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 44.24,
+            "std": 29.64,
+            "median": 41.18,
+            "iqr_low": 17.56,
+            "iqr_high": 72.06,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "44.2 \u00b1 29.6",
+            "formatted_median_iqr": "41.2 [17.6 - 72.1]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 15.9,
+            "std": 13.65,
+            "median": 11.14,
+            "iqr_low": 4.04,
+            "iqr_high": 28.7,
+            "cvar_p5": 0.88,
+            "formatted_mean_sd": "15.9 \u00b1 13.7",
+            "formatted_median_iqr": "11.1 [4.0 - 28.7]",
+            "formatted_p5": "0.9"
+          },
+          "cumulative_reward": {
+            "mean": 100.54,
+            "std": 547.04,
+            "median": 260.16,
+            "iqr_low": -412.58,
+            "iqr_high": 577.63,
+            "cvar_p5": -810.37,
+            "formatted_mean_sd": "100.5 \u00b1 547.0",
+            "formatted_median_iqr": "260.2 [-412.6 - 577.6]",
+            "formatted_p5": "-810.4"
+          }
+        },
+        "Residual_SAC_WithShield": {
+          "tir_70_180": {
+            "mean": 49.65,
+            "std": 32.17,
+            "median": 47.92,
+            "iqr_low": 17.47,
+            "iqr_high": 80.19,
+            "cvar_p5": 9.43,
+            "formatted_mean_sd": "49.7 \u00b1 32.2",
+            "formatted_median_iqr": "47.9 [17.5 - 80.2]",
+            "formatted_p5": "9.4"
+          },
+          "tbr_under_70": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 50.35,
+            "std": 32.17,
+            "median": 52.08,
+            "iqr_low": 19.81,
+            "iqr_high": 82.53,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "50.3 \u00b1 32.2",
+            "formatted_median_iqr": "52.1 [19.8 - 82.5]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 19.14,
+            "std": 15.39,
+            "median": 17.16,
+            "iqr_low": 4.38,
+            "iqr_high": 33.31,
+            "cvar_p5": 0.84,
+            "formatted_mean_sd": "19.1 \u00b1 15.4",
+            "formatted_median_iqr": "17.2 [4.4 - 33.3]",
+            "formatted_p5": "0.8"
+          },
+          "cumulative_reward": {
+            "mean": -28.42,
+            "std": 612.75,
+            "median": 44.61,
+            "iqr_low": -601.98,
+            "iqr_high": 559.51,
+            "cvar_p5": -1001.89,
+            "formatted_mean_sd": "-28.4 \u00b1 612.7",
+            "formatted_median_iqr": "44.6 [-602.0 - 559.5]",
+            "formatted_p5": "-1001.9"
+          }
+        }
+      }
+    },
+    "carb_overestimation": {
+      "label": "5. Surestimation Glucides (+40% Bolus / Overdosage)",
+      "controllers": {
+        "Residual_PPO_WithShield": {
+          "tir_70_180": {
+            "mean": 96.8,
+            "std": 5.53,
+            "median": 100.0,
+            "iqr_low": 96.54,
+            "iqr_high": 100.0,
+            "cvar_p5": 84.24,
+            "formatted_mean_sd": "96.8 \u00b1 5.5",
+            "formatted_median_iqr": "100.0 [96.5 - 100.0]",
+            "formatted_p5": "84.2"
+          },
+          "tbr_under_70": {
+            "mean": 0.16,
+            "std": 0.84,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.2 \u00b1 0.8",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 3.04,
+            "std": 5.55,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 2.34,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "3.0 \u00b1 5.6",
+            "formatted_median_iqr": "0.0 [0.0 - 2.3]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 1.23,
+            "std": 0.86,
+            "median": 0.95,
+            "iqr_low": 0.59,
+            "iqr_high": 1.54,
+            "cvar_p5": 0.42,
+            "formatted_mean_sd": "1.2 \u00b1 0.9",
+            "formatted_median_iqr": "0.9 [0.6 - 1.5]",
+            "formatted_p5": "0.4"
+          },
+          "cumulative_reward": {
+            "mean": 714.97,
+            "std": 50.45,
+            "median": 729.24,
+            "iqr_low": 689.77,
+            "iqr_high": 754.39,
+            "cvar_p5": 609.87,
+            "formatted_mean_sd": "715.0 \u00b1 50.5",
+            "formatted_median_iqr": "729.2 [689.8 - 754.4]",
+            "formatted_p5": "609.9"
+          }
+        },
+        "Residual_SAC_WithShield": {
+          "tir_70_180": {
+            "mean": 96.81,
+            "std": 5.81,
+            "median": 100.0,
+            "iqr_low": 97.06,
+            "iqr_high": 100.0,
+            "cvar_p5": 83.7,
+            "formatted_mean_sd": "96.8 \u00b1 5.8",
+            "formatted_median_iqr": "100.0 [97.1 - 100.0]",
+            "formatted_p5": "83.7"
+          },
+          "tbr_under_70": {
+            "mean": 0.08,
+            "std": 0.39,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.1 \u00b1 0.4",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tbr_under_54": {
+            "mean": 0.0,
+            "std": 0.0,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 0.0,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "0.0 \u00b1 0.0",
+            "formatted_median_iqr": "0.0 [0.0 - 0.0]",
+            "formatted_p5": "0.0"
+          },
+          "tar_over_180": {
+            "mean": 3.11,
+            "std": 5.84,
+            "median": 0.0,
+            "iqr_low": 0.0,
+            "iqr_high": 2.77,
+            "cvar_p5": 0.0,
+            "formatted_mean_sd": "3.1 \u00b1 5.8",
+            "formatted_median_iqr": "0.0 [0.0 - 2.8]",
+            "formatted_p5": "0.0"
+          },
+          "bgri": {
+            "mean": 1.23,
+            "std": 0.96,
+            "median": 0.94,
+            "iqr_low": 0.51,
+            "iqr_high": 1.5,
+            "cvar_p5": 0.33,
+            "formatted_mean_sd": "1.2 \u00b1 1.0",
+            "formatted_median_iqr": "0.9 [0.5 - 1.5]",
+            "formatted_p5": "0.3"
+          },
+          "cumulative_reward": {
+            "mean": 714.21,
+            "std": 55.73,
+            "median": 730.96,
+            "iqr_low": 686.78,
+            "iqr_high": 757.26,
+            "cvar_p5": 598.16,
+            "formatted_mean_sd": "714.2 \u00b1 55.7",
+            "formatted_median_iqr": "731.0 [686.8 - 757.3]",
+            "formatted_p5": "598.2"
+          }
+        }
+      }
+    }
+  }
+}

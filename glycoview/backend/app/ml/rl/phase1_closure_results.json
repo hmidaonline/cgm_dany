@@ -1,0 +1,521 @@
+{
+  "table1_validation_30_60min": {
+    "30min": {
+      "n_samples": 602,
+      "persistence": {
+        "rmse": 32.03,
+        "mae": 23.88,
+        "mard": 18.01,
+        "bias": -0.38,
+        "r2": 0.729,
+        "n": 602,
+        "clarke": {
+          "zone_a": 68.8,
+          "zone_b": 27.1,
+          "zone_c": 2.2,
+          "zone_d": 2.0,
+          "zone_e": 0.0,
+          "zone_ab": 95.9,
+          "sample_count": 602
+        }
+      },
+      "pure_physio": {
+        "rmse": 40.31,
+        "mae": 31.39,
+        "mard": 23.01,
+        "bias": -6.66,
+        "r2": 0.571,
+        "n": 602,
+        "clarke": {
+          "zone_a": 54.2,
+          "zone_b": 38.9,
+          "zone_c": 1.5,
+          "zone_d": 5.5,
+          "zone_e": 0.0,
+          "zone_ab": 93.1,
+          "sample_count": 602
+        },
+        "signed_bias": -6.66,
+        "skill_score": -0.314,
+        "ci_95_skill_score": [
+          -0.491,
+          -0.217
+        ],
+        "delta_mae": -7.51,
+        "ci_95_delta_mae": [
+          -11.21,
+          -5.4
+        ]
+      },
+      "physio_uam": {
+        "tau_45min": {
+          "rmse": 38.33,
+          "mae": 29.66,
+          "mard": 22.65,
+          "bias": 13.77,
+          "r2": 0.612,
+          "n": 602,
+          "clarke": {
+            "zone_a": 57.0,
+            "zone_b": 32.6,
+            "zone_c": 7.3,
+            "zone_d": 3.2,
+            "zone_e": 0.0,
+            "zone_ab": 89.6,
+            "sample_count": 602
+          },
+          "signed_bias": 13.77,
+          "skill_score": -0.242,
+          "ci_95_skill_score": [
+            -0.343,
+            -0.126
+          ],
+          "delta_mae": -5.78,
+          "ci_95_delta_mae": [
+            -7.33,
+            -3.23
+          ]
+        },
+        "tau_50min": {
+          "rmse": 38.9,
+          "mae": 30.06,
+          "mard": 22.88,
+          "bias": 14.51,
+          "r2": 0.601,
+          "n": 602,
+          "clarke": {
+            "zone_a": 56.0,
+            "zone_b": 33.2,
+            "zone_c": 7.6,
+            "zone_d": 3.2,
+            "zone_e": 0.0,
+            "zone_ab": 89.2,
+            "sample_count": 602
+          },
+          "signed_bias": 14.51,
+          "skill_score": -0.259,
+          "ci_95_skill_score": [
+            -0.36,
+            -0.136
+          ],
+          "delta_mae": -6.18,
+          "ci_95_delta_mae": [
+            -7.76,
+            -3.48
+          ]
+        },
+        "tau_60min": {
+          "rmse": 39.87,
+          "mae": 30.77,
+          "mard": 23.28,
+          "bias": 15.67,
+          "r2": 0.581,
+          "n": 602,
+          "clarke": {
+            "zone_a": 55.1,
+            "zone_b": 33.6,
+            "zone_c": 8.1,
+            "zone_d": 3.2,
+            "zone_e": 0.0,
+            "zone_ab": 88.7,
+            "sample_count": 602
+          },
+          "signed_bias": 15.67,
+          "skill_score": -0.289,
+          "ci_95_skill_score": [
+            -0.396,
+            -0.157
+          ],
+          "delta_mae": -6.89,
+          "ci_95_delta_mae": [
+            -8.5,
+            -4.02
+          ]
+        }
+      }
+    },
+    "60min": {
+      "n_samples": 599,
+      "persistence": {
+        "rmse": 50.93,
+        "mae": 39.4,
+        "mard": 29.55,
+        "bias": -0.83,
+        "r2": 0.317,
+        "n": 599,
+        "clarke": {
+          "zone_a": 46.4,
+          "zone_b": 44.2,
+          "zone_c": 4.7,
+          "zone_d": 3.3,
+          "zone_e": 1.3,
+          "zone_ab": 90.6,
+          "sample_count": 599
+        }
+      },
+      "pure_physio": {
+        "rmse": 70.2,
+        "mae": 53.18,
+        "mard": 36.32,
+        "bias": -21.53,
+        "r2": -0.298,
+        "n": 599,
+        "clarke": {
+          "zone_a": 30.4,
+          "zone_b": 56.3,
+          "zone_c": 0.0,
+          "zone_d": 11.0,
+          "zone_e": 2.3,
+          "zone_ab": 86.7,
+          "sample_count": 599
+        },
+        "signed_bias": -21.53,
+        "skill_score": -0.35,
+        "ci_95_skill_score": [
+          -0.629,
+          -0.131
+        ],
+        "delta_mae": -13.79,
+        "ci_95_delta_mae": [
+          -24.58,
+          -5.19
+        ]
+      },
+      "physio_uam": {
+        "tau_45min": {
+          "rmse": 62.41,
+          "mae": 47.69,
+          "mard": 38.54,
+          "bias": 10.37,
+          "r2": -0.025,
+          "n": 599,
+          "clarke": {
+            "zone_a": 41.6,
+            "zone_b": 46.6,
+            "zone_c": 5.3,
+            "zone_d": 4.0,
+            "zone_e": 2.5,
+            "zone_ab": 88.2,
+            "sample_count": 599
+          },
+          "signed_bias": 10.37,
+          "skill_score": -0.211,
+          "ci_95_skill_score": [
+            -0.326,
+            -0.123
+          ],
+          "delta_mae": -8.3,
+          "ci_95_delta_mae": [
+            -11.97,
+            -5.01
+          ]
+        },
+        "tau_50min": {
+          "rmse": 63.52,
+          "mae": 48.48,
+          "mard": 39.28,
+          "bias": 12.28,
+          "r2": -0.062,
+          "n": 599,
+          "clarke": {
+            "zone_a": 41.4,
+            "zone_b": 46.2,
+            "zone_c": 5.8,
+            "zone_d": 4.0,
+            "zone_e": 2.5,
+            "zone_ab": 87.6,
+            "sample_count": 599
+          },
+          "signed_bias": 12.28,
+          "skill_score": -0.231,
+          "ci_95_skill_score": [
+            -0.347,
+            -0.135
+          ],
+          "delta_mae": -9.08,
+          "ci_95_delta_mae": [
+            -12.71,
+            -5.51
+          ]
+        },
+        "tau_60min": {
+          "rmse": 65.68,
+          "mae": 50.08,
+          "mard": 40.63,
+          "bias": 15.45,
+          "r2": -0.136,
+          "n": 599,
+          "clarke": {
+            "zone_a": 39.9,
+            "zone_b": 47.2,
+            "zone_c": 6.7,
+            "zone_d": 3.8,
+            "zone_e": 2.3,
+            "zone_ab": 87.1,
+            "sample_count": 599
+          },
+          "signed_bias": 15.45,
+          "skill_score": -0.271,
+          "ci_95_skill_score": [
+            -0.39,
+            -0.166
+          ],
+          "delta_mae": -10.68,
+          "ci_95_delta_mae": [
+            -14.25,
+            -6.61
+          ]
+        }
+      }
+    }
+  },
+  "table2_stratification_and_hyper_bias": {
+    "30min": {
+      "Hypoglyc\u00e9mie (<70)": {
+        "N": 24,
+        "mae_persist": 31.5,
+        "mae_pure_physio": 31.7,
+        "mae_physio_uam": 33.9,
+        "bias_persist": -30.8,
+        "bias_pure_physio": -20.7,
+        "bias_physio_uam": -23.4
+      },
+      "Cible euglyc\u00e9mique (70-180)": {
+        "N": 424,
+        "mae_persist": 22.8,
+        "mae_pure_physio": 28.2,
+        "mae_physio_uam": 27.0,
+        "bias_persist": -1.6,
+        "bias_pure_physio": 0.8,
+        "bias_physio_uam": 12.5
+      },
+      "Hyperglyc\u00e9mie (>180)": {
+        "N": 154,
+        "mae_persist": 25.6,
+        "mae_pure_physio": 40.2,
+        "mae_physio_uam": 36.4,
+        "bias_persist": 7.7,
+        "bias_pure_physio": -25.1,
+        "bias_physio_uam": 23.0
+      }
+    },
+    "60min": {
+      "Hypoglyc\u00e9mie (<70)": {
+        "N": 24,
+        "mae_persist": 61.1,
+        "mae_pure_physio": 60.7,
+        "mae_physio_uam": 64.9,
+        "bias_persist": -61.1,
+        "bias_pure_physio": -47.5,
+        "bias_physio_uam": -50.8
+      },
+      "Cible euglyc\u00e9mique (70-180)": {
+        "N": 424,
+        "mae_persist": 36.0,
+        "mae_pure_physio": 42.0,
+        "mae_physio_uam": 45.5,
+        "bias_persist": -5.3,
+        "bias_pure_physio": -5.0,
+        "bias_physio_uam": 12.9
+      },
+      "Hyperglyc\u00e9mie (>180)": {
+        "N": 151,
+        "mae_persist": 45.5,
+        "mae_pure_physio": 83.3,
+        "mae_physio_uam": 51.2,
+        "bias_persist": 21.3,
+        "bias_pure_physio": -63.9,
+        "bias_physio_uam": 13.0
+      }
+    }
+  },
+  "table3_rollouts_24h_72h": {
+    "24h": {
+      "real": {
+        "mean": 124.2,
+        "cv_pct": 30.5,
+        "tir_70_180": 85.1,
+        "tbr_under_70": 4.2,
+        "tbr_under_54": 0.0,
+        "tar_over_180": 10.8,
+        "tar_over_250": 0.0,
+        "p10": 74.0,
+        "p25": 99.0,
+        "p50": 120.5,
+        "p75": 142.2,
+        "p90": 182.3
+      },
+      "sim_naive": {
+        "mean": 154.6,
+        "cv_pct": 35.5,
+        "tir_70_180": 64.2,
+        "tbr_under_70": 0.0,
+        "tbr_under_54": 0.0,
+        "tar_over_180": 35.8,
+        "tar_over_250": 0.0,
+        "p10": 82.0,
+        "p25": 99.3,
+        "p50": 168.0,
+        "p75": 206.2,
+        "p90": 226.4
+      },
+      "sim_uam": {
+        "mean": 154.0,
+        "cv_pct": 40.4,
+        "tir_70_180": 42.4,
+        "tbr_under_70": 17.7,
+        "tbr_under_54": 3.5,
+        "tar_over_180": 39.9,
+        "tar_over_250": 3.1,
+        "p10": 62.0,
+        "p25": 88.6,
+        "p50": 163.9,
+        "p75": 208.9,
+        "p90": 228.3
+      }
+    },
+    "72h": {
+      "real": {
+        "mean": 140.9,
+        "cv_pct": 42.9,
+        "tir_70_180": 70.3,
+        "tbr_under_70": 6.5,
+        "tbr_under_54": 0.0,
+        "tar_over_180": 23.3,
+        "tar_over_250": 6.8,
+        "p10": 73.0,
+        "p25": 95.0,
+        "p50": 128.5,
+        "p75": 176.2,
+        "p90": 229.0
+      },
+      "sim_naive": {
+        "mean": 101.4,
+        "cv_pct": 67.7,
+        "tir_70_180": 44.3,
+        "tbr_under_70": 39.0,
+        "tbr_under_54": 34.4,
+        "tar_over_180": 16.7,
+        "tar_over_250": 1.0,
+        "p10": 25.0,
+        "p25": 33.8,
+        "p50": 87.5,
+        "p75": 162.9,
+        "p90": 209.4
+      },
+      "sim_uam": {
+        "mean": 145.2,
+        "cv_pct": 58.5,
+        "tir_70_180": 46.1,
+        "tbr_under_70": 24.4,
+        "tbr_under_54": 17.7,
+        "tar_over_180": 29.5,
+        "tar_over_250": 10.8,
+        "p10": 35.0,
+        "p25": 71.1,
+        "p50": 142.3,
+        "p75": 193.7,
+        "p90": 254.3
+      }
+    }
+  },
+  "table4_event_validation": {
+    "corrections_sample_3": [
+      {
+        "datetime": "2026-10-11 12:50:00+00:00",
+        "g0": 132.0,
+        "mean_iob": 2.94,
+        "obs_nadir": 108.0,
+        "obs_delta_g": -24.0,
+        "obs_time_min": 90,
+        "sim_nadir": 94.1,
+        "sim_delta_g": -37.9,
+        "sim_time_min": 90,
+        "err_delta_g": -13.9,
+        "err_time_min": 0
+      },
+      {
+        "datetime": "2026-10-11 15:00:00+00:00",
+        "g0": 112.0,
+        "mean_iob": 2.12,
+        "obs_nadir": 88.0,
+        "obs_delta_g": -24.0,
+        "obs_time_min": 55,
+        "sim_nadir": 106.9,
+        "sim_delta_g": -5.1,
+        "sim_time_min": 10,
+        "err_delta_g": 18.9,
+        "err_time_min": -45
+      },
+      {
+        "datetime": "2026-10-11 17:10:00+00:00",
+        "g0": 129.0,
+        "mean_iob": 3.24,
+        "obs_nadir": 66.0,
+        "obs_delta_g": -63.0,
+        "obs_time_min": 235,
+        "sim_nadir": 62.1,
+        "sim_delta_g": -66.9,
+        "sim_time_min": 135,
+        "err_delta_g": -3.9,
+        "err_time_min": -100
+      }
+    ],
+    "meals_sample_3": [
+      {
+        "datetime": "2026-10-11 11:40:00+00:00",
+        "g0": 107.7,
+        "carbs": 40.0,
+        "bolus": 0.0,
+        "obs_peak": 159.0,
+        "obs_delta_g": 51.3,
+        "obs_time_min": 95,
+        "sim_peak": 125.2,
+        "sim_delta_g": 17.5,
+        "sim_time_min": 85,
+        "err_delta_g": -33.8,
+        "err_time_min": -10
+      },
+      {
+        "datetime": "2026-10-11 14:25:00+00:00",
+        "g0": 112.0,
+        "carbs": 15.0,
+        "bolus": 1.75,
+        "obs_peak": 135.0,
+        "obs_delta_g": 23.0,
+        "obs_time_min": 65,
+        "sim_peak": 135.9,
+        "sim_delta_g": 23.9,
+        "sim_time_min": 125,
+        "err_delta_g": 0.9,
+        "err_time_min": 60
+      },
+      {
+        "datetime": "2026-10-11 21:10:00+00:00",
+        "g0": 67.0,
+        "carbs": 25.0,
+        "bolus": 2.25,
+        "obs_peak": 185.0,
+        "obs_delta_g": 118.0,
+        "obs_time_min": 65,
+        "sim_peak": 93.7,
+        "sim_delta_g": 26.7,
+        "sim_time_min": 125,
+        "err_delta_g": -91.3,
+        "err_time_min": 60
+      }
+    ],
+    "all_corrections_summary": {
+      "n_events": 16,
+      "mae_delta_g_mgdl": 37.5,
+      "signed_bias_delta_g_mgdl": -27.6,
+      "mean_timing_error_min": 154.1
+    },
+    "all_meals_summary": {
+      "n_events": 14,
+      "mae_delta_g_mgdl": 50.0,
+      "signed_bias_delta_g_mgdl": -46.5,
+      "mean_timing_error_min": 45.0
+    }
+  }
+}

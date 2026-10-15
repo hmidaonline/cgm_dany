@@ -1,0 +1,483 @@
+{
+  "paired_bootstrap_evaluation": {
+    "30min": {
+      "paired_bootstrap": {
+        "point_delta_mae": 1.73,
+        "ci_95_delta_mae": [
+          -1.16,
+          5.38
+        ],
+        "point_skill_score": 0.072,
+        "ci_95_skill_score": [
+          -0.055,
+          0.205
+        ]
+      },
+      "stratification_at_t0": {
+        "Hypo (<70)": {
+          "N": 25,
+          "mae_hybrid": 29.43,
+          "mae_persist": 31.58,
+          "bias_hybrid": -5.12,
+          "bias_persist": -30.86
+        },
+        "Cible (70-180)": {
+          "N": 425,
+          "mae_hybrid": 18.16,
+          "mae_persist": 22.79,
+          "bias_hybrid": 3.1,
+          "bias_persist": -1.57
+        },
+        "Hyper (>180)": {
+          "N": 151,
+          "mae_hybrid": 32.01,
+          "mae_persist": 25.48,
+          "bias_hybrid": -18.7,
+          "bias_persist": 7.23
+        }
+      },
+      "stratification_by_prediction": {
+        "Pred Hypo (<70)": {
+          "N": 5,
+          "mae_hybrid": 30.42,
+          "mae_persist": 34.1,
+          "bias_hybrid": -29.64,
+          "bias_persist": -27.3
+        },
+        "Pred Cible (70-180)": {
+          "N": 472,
+          "mae_hybrid": 19.8,
+          "mae_persist": 23.7,
+          "bias_hybrid": -0.17,
+          "bias_persist": -0.38
+        },
+        "Pred Hyper (>180)": {
+          "N": 124,
+          "mae_hybrid": 30.53,
+          "mae_persist": 23.91,
+          "bias_hybrid": -11.33,
+          "bias_persist": -0.24
+        }
+      },
+      "metrics_hybrid": {
+        "rmse": 28.74,
+        "mae": 22.1,
+        "mard": 16.71,
+        "bias": -2.72,
+        "r2": 0.783,
+        "n": 601
+      },
+      "clarke_hybrid": {
+        "zone_a": 70.4,
+        "zone_b": 24.3,
+        "zone_c": 1.3,
+        "zone_d": 4.0,
+        "zone_e": 0.0,
+        "zone_ab": 94.7,
+        "sample_count": 601
+      },
+      "metrics_physio": {
+        "rmse": 45.22,
+        "mae": 34.36,
+        "mard": 23.51,
+        "bias": -15.24,
+        "r2": 0.463,
+        "n": 601
+      },
+      "clarke_physio": {
+        "zone_a": 50.6,
+        "zone_b": 41.9,
+        "zone_c": 0.7,
+        "zone_d": 6.8,
+        "zone_e": 0.0,
+        "zone_ab": 92.5,
+        "sample_count": 601
+      },
+      "metrics_persist": {
+        "rmse": 32.01,
+        "mae": 23.83,
+        "mard": 18.02,
+        "bias": -0.58,
+        "r2": 0.731,
+        "n": 601
+      },
+      "clarke_persist": {
+        "zone_a": 68.7,
+        "zone_b": 27.1,
+        "zone_c": 2.2,
+        "zone_d": 2.0,
+        "zone_e": 0.0,
+        "zone_ab": 95.8,
+        "sample_count": 601
+      }
+    },
+    "60min": {
+      "paired_bootstrap": {
+        "point_delta_mae": -0.7,
+        "ci_95_delta_mae": [
+          -9.46,
+          7.3
+        ],
+        "point_skill_score": -0.018,
+        "ci_95_skill_score": [
+          -0.254,
+          0.176
+        ]
+      },
+      "stratification_at_t0": {
+        "Hypo (<70)": {
+          "N": 25,
+          "mae_hybrid": 40.54,
+          "mae_persist": 60.94,
+          "bias_hybrid": 3.62,
+          "bias_persist": -60.94
+        },
+        "Cible (70-180)": {
+          "N": 425,
+          "mae_hybrid": 31.29,
+          "mae_persist": 35.91,
+          "bias_hybrid": 4.11,
+          "bias_persist": -5.3
+        },
+        "Hyper (>180)": {
+          "N": 148,
+          "mae_hybrid": 64.72,
+          "mae_persist": 45.17,
+          "bias_hybrid": -50.54,
+          "bias_persist": 20.47
+        }
+      },
+      "stratification_by_prediction": {
+        "Pred Cible (70-180)": {
+          "N": 538,
+          "mae_hybrid": 38.75,
+          "mae_persist": 39.73,
+          "bias_hybrid": -9.07,
+          "bias_persist": -3.48
+        },
+        "Pred Hyper (>180)": {
+          "N": 60,
+          "mae_hybrid": 50.72,
+          "mae_persist": 34.86,
+          "bias_hybrid": -12.8,
+          "bias_persist": 18.76
+        }
+      },
+      "metrics_hybrid": {
+        "rmse": 54.19,
+        "mae": 39.95,
+        "mard": 29.44,
+        "bias": -9.44,
+        "r2": 0.229,
+        "n": 598
+      },
+      "clarke_hybrid": {
+        "zone_a": 47.2,
+        "zone_b": 41.8,
+        "zone_c": 0.3,
+        "zone_d": 10.4,
+        "zone_e": 0.3,
+        "zone_ab": 89.0,
+        "sample_count": 598
+      },
+      "metrics_physio": {
+        "rmse": 84.23,
+        "mae": 61.62,
+        "mard": 38.93,
+        "bias": -37.95,
+        "r2": -0.863,
+        "n": 598
+      },
+      "clarke_physio": {
+        "zone_a": 29.4,
+        "zone_b": 52.2,
+        "zone_c": 1.3,
+        "zone_d": 11.2,
+        "zone_e": 5.9,
+        "zone_ab": 81.6,
+        "sample_count": 598
+      },
+      "metrics_persist": {
+        "rmse": 50.83,
+        "mae": 39.25,
+        "mard": 29.48,
+        "bias": -1.25,
+        "r2": 0.322,
+        "n": 598
+      },
+      "clarke_persist": {
+        "zone_a": 46.7,
+        "zone_b": 44.5,
+        "zone_c": 4.2,
+        "zone_d": 3.3,
+        "zone_e": 1.3,
+        "zone_ab": 91.2,
+        "sample_count": 598
+      }
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "4. Linear vs Physio Divergence",
+      "importance_mean": 0.4602,
+      "importance_std": 0.0208
+    },
+    {
+      "feature": "11. Physio Delta (G_phys - G_0)",
+      "importance_mean": 0.3454,
+      "importance_std": 0.0085
+    },
+    {
+      "feature": "1. SGV origin (G_t0)",
+      "importance_mean": 0.3224,
+      "importance_std": 0.0203
+    },
+    {
+      "feature": "7. Circadian Sin(hour)",
+      "importance_mean": 0.1042,
+      "importance_std": 0.0044
+    },
+    {
+      "feature": "5. Controller IOB",
+      "importance_mean": 0.0847,
+      "importance_std": 0.0048
+    },
+    {
+      "feature": "3. Acceleration 30 min",
+      "importance_mean": 0.0839,
+      "importance_std": 0.0037
+    },
+    {
+      "feature": "8. Circadian Cos(hour)",
+      "importance_mean": 0.056,
+      "importance_std": 0.0043
+    },
+    {
+      "feature": "2. Velocity 15 min (dG/dt)",
+      "importance_mean": 0.0137,
+      "importance_std": 0.001
+    },
+    {
+      "feature": "6. Controller COB",
+      "importance_mean": 0.0115,
+      "importance_std": 0.0013
+    },
+    {
+      "feature": "9. Hypo Depth max(0, 70-G)",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "10. Hyper Excess max(0, G-180)",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    }
+  ],
+  "rollout_comparison": {
+    "rollout_24h": {
+      "real": {
+        "mean": 124.7,
+        "cv_pct": 31.1,
+        "tir_70_180": 83.7,
+        "tbr_under_70": 4.2,
+        "tbr_under_54": 0.0,
+        "tar_over_180": 12.2,
+        "p10": 74.0,
+        "p25": 99.0,
+        "p50": 120.5,
+        "p75": 142.2,
+        "p90": 184.3
+      },
+      "simulated": {
+        "mean": 192.1,
+        "cv_pct": 21.3,
+        "tir_70_180": 38.2,
+        "tbr_under_70": 0.0,
+        "tbr_under_54": 0.0,
+        "tar_over_180": 61.8,
+        "p10": 139.7,
+        "p25": 150.0,
+        "p50": 203.4,
+        "p75": 222.3,
+        "p90": 251.6
+      }
+    },
+    "rollout_72h": {
+      "real": {
+        "mean": 141.5,
+        "cv_pct": 42.7,
+        "tir_70_180": 69.8,
+        "tbr_under_70": 6.5,
+        "tbr_under_54": 0.0,
+        "tar_over_180": 23.7,
+        "p10": 73.0,
+        "p25": 96.0,
+        "p50": 129.0,
+        "p75": 178.0,
+        "p90": 229.0
+      },
+      "simulated": {
+        "mean": 107.7,
+        "cv_pct": 66.4,
+        "tir_70_180": 41.2,
+        "tbr_under_70": 38.2,
+        "tbr_under_54": 31.4,
+        "tar_over_180": 20.6,
+        "p10": 25.0,
+        "p25": 36.2,
+        "p50": 92.8,
+        "p75": 150.6,
+        "p90": 215.4
+      }
+    }
+  },
+  "event_trajectories": {
+    "corrections": [
+      {
+        "datetime": "2026-10-11 10:35:00+00:00",
+        "observed_start": 195.0,
+        "observed_nadir": 96.0,
+        "observed_drop": -99.0,
+        "mean_iob": 7.02,
+        "simulated_drop": -224.6
+      },
+      {
+        "datetime": "2026-10-11 12:50:00+00:00",
+        "observed_start": 132.0,
+        "observed_nadir": 108.0,
+        "observed_drop": -24.0,
+        "mean_iob": 2.94,
+        "simulated_drop": -94.2
+      },
+      {
+        "datetime": "2026-10-11 15:00:00+00:00",
+        "observed_start": 112.0,
+        "observed_nadir": 88.0,
+        "observed_drop": -24.0,
+        "mean_iob": 2.12,
+        "simulated_drop": -68.0
+      }
+    ],
+    "meals": [
+      {
+        "datetime": "2026-10-11 11:40:00+00:00",
+        "carbs": 40.0,
+        "bolus": 0.0,
+        "baseline": 101.8,
+        "observed_peak": 159.0,
+        "observed_excursion": 57.2,
+        "simulated_expected_excursion": 160.0
+      },
+      {
+        "datetime": "2026-10-11 14:25:00+00:00",
+        "carbs": 15.0,
+        "bolus": 1.75,
+        "baseline": 110.0,
+        "observed_peak": 135.0,
+        "observed_excursion": 25.0,
+        "simulated_expected_excursion": 4.0
+      },
+      {
+        "datetime": "2026-10-11 21:10:00+00:00",
+        "carbs": 25.0,
+        "bolus": 2.25,
+        "baseline": 66.5,
+        "observed_peak": 185.0,
+        "observed_excursion": 118.5,
+        "simulated_expected_excursion": 28.0
+      }
+    ]
+  },
+  "calibrated_params_diagnostics": {
+    "isf_base": {
+      "point_estimate": 32.0,
+      "prior": 32.0,
+      "status": "PRIOR_DOMINATED",
+      "n_events": 0,
+      "ci_95": [
+        27.2,
+        36.8
+      ],
+      "raw_distribution": {
+        "p2_5": 27.2,
+        "p25": 32.0,
+        "p50": 32.0,
+        "p75": 32.0,
+        "p97_5": 36.8
+      },
+      "at_boundary": false
+    },
+    "cr_breakfast": {
+      "point_estimate": 7.1,
+      "prior": 8.5,
+      "status": "DATA_INFORMED",
+      "n_events": 5,
+      "ci_95": [
+        4.9,
+        7.6
+      ],
+      "raw_distribution": {
+        "p2_5": 4.9,
+        "p25": 5.7,
+        "p50": 6.2,
+        "p75": 6.7,
+        "p97_5": 7.6
+      },
+      "at_boundary": false
+    },
+    "cr_lunch": {
+      "point_estimate": 7.4,
+      "prior": 8.0,
+      "status": "DATA_INFORMED",
+      "n_events": 7,
+      "ci_95": [
+        6.3,
+        7.4
+      ],
+      "raw_distribution": {
+        "p2_5": 6.3,
+        "p25": 6.7,
+        "p50": 6.9,
+        "p75": 7.1,
+        "p97_5": 7.4
+      },
+      "at_boundary": false
+    },
+    "cr_dinner": {
+      "point_estimate": 8.4,
+      "prior": 9.5,
+      "status": "DATA_INFORMED",
+      "n_events": 5,
+      "ci_95": [
+        6.6,
+        9.3
+      ],
+      "raw_distribution": {
+        "p2_5": 6.6,
+        "p25": 7.5,
+        "p50": 8.0,
+        "p75": 8.4,
+        "p97_5": 9.3
+      },
+      "at_boundary": false
+    },
+    "cr_other": {
+      "point_estimate": 7.1,
+      "prior": 9.0,
+      "status": "DATA_INFORMED",
+      "n_events": 3,
+      "ci_95": [
+        5.6,
+        7.3
+      ],
+      "raw_distribution": {
+        "p2_5": 5.6,
+        "p25": 5.8,
+        "p50": 6.3,
+        "p75": 6.7,
+        "p97_5": 7.3
+      },
+      "at_boundary": false
+    }
+  }
+}

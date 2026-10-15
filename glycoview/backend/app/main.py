@@ -6,6 +6,7 @@ from app.api.prediction_routes import router as prediction_router
 from app.api.digital_twin_routes import router as twin_router
 from app.api.auth_routes import router as auth_router
 from app.api.dataset_routes import router as dataset_router
+from app.api.rl_routes import router as rl_router
 
 app = FastAPI(title="GlycoView API", version="0.1.0")
 
@@ -24,6 +25,7 @@ app.include_router(analysis_router)
 app.include_router(prediction_router)
 app.include_router(twin_router)
 app.include_router(dataset_router)
+app.include_router(rl_router)
 
 if __name__ == "__main__":
     import uvicorn

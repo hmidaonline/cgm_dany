@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, LineChart, BrainCircuit, Activity,
-  Cpu, Database, LogOut, ShieldCheck, PanelLeftClose, PanelLeftOpen
+  Cpu, Database, LogOut, ShieldCheck, PanelLeftClose, PanelLeftOpen, Zap
 } from 'lucide-react';
 import GlucoseChart from './components/GlucoseChart';
 import PredictionView from './components/PredictionView';
 import DigitalTwinView from './components/DigitalTwinView';
 import TrainingDataView from './components/TrainingDataView';
+import RLAgentView from './components/RLAgentView';
 import LoginView from './components/LoginView';
 import { API_BASE_URL } from './config';
 
@@ -176,6 +177,14 @@ function App() {
             <Cpu className="w-5 h-5" style={{ flexShrink: 0 }} />
             {!sidebarCollapsed && <span className="nav-text">Jumeau Numérique (J6)</span>}
           </div>
+          <div
+            className={`nav-item ${activeMenu === 'rl_agent' ? 'active' : ''}`}
+            onClick={() => setActiveMenu('rl_agent')}
+            title="Jumeau & Agent RL (Phase 5 - Mode Ombre)"
+          >
+            <Zap className="w-5 h-5" style={{ flexShrink: 0, color: activeMenu === 'rl_agent' ? '#fff' : '#10b981' }} />
+            {!sidebarCollapsed && <span className="nav-text" style={{ color: activeMenu === 'rl_agent' ? '#fff' : '#10b981', fontWeight: '700' }}>Jumeau & Agent RL</span>}
+          </div>
           <div style={{ flex: 1 }}></div>
 
           {/* User profile & Logout footer */}
@@ -265,6 +274,9 @@ function App() {
             {activeMenu === 'analysis' && 'Analyses Statistiques'}
             {activeMenu === 'prediction' && 'Modèles de Prédiction'}
             {activeMenu === 'digital_twin' && 'Jumeau Numérique Physiologique (J6)'}
+            {activeMenu === 'rl_agent' && (
+              <span>Jumeau Numérique & Agent RL <small style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 'bold' }}>● Phase 5 Mode Ombre</small></span>
+            )}
           </div>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {activeMenu === 'dashboard' && metrics.mean !== undefined && (
@@ -432,6 +444,10 @@ function App() {
 
           {activeMenu === 'digital_twin' && (
             <DigitalTwinView />
+          )}
+
+          {activeMenu === 'rl_agent' && (
+            <RLAgentView />
           )}
         </main>
       </div>
